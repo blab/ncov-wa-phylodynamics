@@ -1,0 +1,85 @@
+---
+title: "WA growth rates"
+author: "Nicola Mueller"
+date: '2020-02-05'
+output:
+  bookdown::html_document2: default
+bibliography: library.bib
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library("coda")
+library("colorblindr") 
+library(grid)
+library(gridExtra)
+library(ggtree)
+
+mask_prob = c(0,0.25,0.5)
+
+
+path = "/Users/nmueller/Documents/github/hCoV-19_WA"
+
+
+```
+
+# Doubling times in different regions
+```{r densitree, include=FALSE}
+library(phytools)
+packageVersion("phytools")
+
+# sampling time of the most recent sampled individual
+mrsi = as.Date("2020-03-10")
+
+
+t.wa = read.table(paste(path,'/out/cluster_wa.log',sep="/"), sep="\t", header=T)
+t.wa = t.wa[-seq(1,length(t.wa$posterior)/10),]
+t.wa$cluster = "Washington State"
+
+t = rbind(t.wa)
+
+p_growth <- ggplot(t) + geom_density(aes(x=log(2)/growthRate*365, fill=cluster), alpha=0.5)  + 
+  theme(legend.position = "top") +
+  xlab("doubling time in days")+
+  ylab("probability density")+
+  scale_color_OkabeIto()+
+  ggtitle("Estimated doubling times") +
+  scale_x_continuous(limits=c(0,10)) +
+  theme_minimal() +
+  theme(legend.position = "none")
+plot(p_growth)
+ggsave(file="figures/growth_2020319.png", height=3.5, width=6)
+
+p_date <- ggplot(t) + 
+  geom_histogram(aes(x=mrsi-Tree.height*365), alpha=0.8)  + 
+  theme(legend.position = "top") +
+  xlab("")+
+  ylab("probability density")+
+  scale_color_OkabeIto()+
+  ggtitle("common ancestor time WA cluster") +
+  scale_x_date()+
+  theme_minimal() +
+  theme(legend.position = "none")
+plot(p_date)
+
+ggsave(plot=p_date,paste(path, "common_ancestor_wa.png", sep="/"), height=3,width= 4)
+
+
+
+```
+
+
+# Genome data used
+
+These analyses have been made possible by the public sharing of data.
+The analysis here used the following sequences:
+
+```{r data, echo=FALSE}
+library(knitr)
+data = read.table(file=paste(path, "/sequences_used.csv", sep=""), sep="|", header=T)
+kable(data)
+```
+
+# References
