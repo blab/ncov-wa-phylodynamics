@@ -7,6 +7,7 @@ for clock in 8e-4; do
         # for idx in `seq 1 5`; do
         for idx in `seq 1 3`; do
 
+            # This JAR file contains BEAST + dev versions of epiinf and feast packages.
             java -jar ~/code/beast_and_friends/EpiInf/out/artifacts/EpiInf_jar/EpiInf.jar \
                  -overwrite \
                  -D outbreak=$outbreak,clock=$clock,bu=$bu,idx=$idx \
