@@ -25,6 +25,203 @@ path = "/Users/nmueller/Documents/github/hCoV-19_WA"
 
 ```
 
+# Skygrid analysis
+
+
+```{r skyline}
+# read in the mrsi file
+mrsi = read.table(paste(path,'/config/mrsi.tsv',sep="/"), sep="\t", header=T)
+
+mrsi$date = as.Date(mrsi$mrsi)
+
+clusters = read.table(paste(path,'/config/cluster_size.tsv',sep="/"), sep="\t", header=T)
+
+timeframename = c('samples until 2020-03-11', 'samples until 2020-03-17', 'samples until 2020-03-24')
+
+time = seq(0,0.2,7/365)
+first = T
+first.growth = T
+first.intro = T
+for (i in seq(1,length(mrsi$filename))){
+  if (!startsWith( as.character(mrsi[i,"filename"]),"multibd")){
+    # read in the log file
+    t = read.table(paste(path,'/out/', mrsi[i,'filename'], '.log',sep=""), sep="\t", header=T)
+    # take a 10% burnin
+    t = t[-seq(1,length(t$posterior)/10),]
+    # read in all the Ne's
+    for (j in seq(1,length(time))){
+      method = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[2]]
+      timeframe = timeframename[as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])]
+      name = paste('Ne',j,sep="")
+      hpdInt = HPDinterval(as.mcmc(t[,name]))
+      new.dat = data.frame(time=mrsi[i,"date"]-time[j]*365, 
+                           Ne.mean=median(t[,name]), Ne.lower=hpdInt[1,'lower'], Ne.upper=hpdInt[1,'upper'], 
+                           method = method, timeframe=timeframe)
+      if (first){
+        dat = new.dat
+        first = F
+      }else{
+        dat = rbind(dat, new.dat)
+      }
+    }
+    
+    # get all the growth rates
+    average_over = 1
+    for (j in seq(1,length(time)-average_over,1)){
+      method = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[2]]
+      timeframe = timeframename[as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])]
+      
+      name1 = paste('Ne',j,sep="")
+      name2 = paste('Ne',j+average_over,sep="")
+      
+      values = (t[,name1]-t[,name2])/(time[j+average_over]-time[j])
+      
+      doubling = log(2)/values
+      hpdInt = HPDinterval(as.mcmc(values))
+      hpdInt.doubling = HPDinterval(as.mcmc(doubling))
+  
+      new.dat = data.frame(time=mrsi[i,"date"]-time[j]*365, 
+                           growth.mean=median(values), growth.lower=hpdInt[1,'lower'], growth.upper=hpdInt[1,'upper'], 
+                           doubling.mean=median(doubling), doubling.lower=hpdInt.doubling[1,'lower'], doubling.upper=hpdInt.doubling[1,'upper'], 
+                           method = method, timeframe=timeframe)
+      
+      new.dat = rbind(new.dat, data.frame(time=mrsi[i,"date"]-time[j+1]*365 +0.01, 
+                           growth.mean=median(values), growth.lower=hpdInt[1,'lower'], growth.upper=hpdInt[1,'upper'], 
+                           doubling.mean=median(doubling), doubling.lower=hpdInt.doubling[1,'lower'], doubling.upper=hpdInt.doubling[1,'upper'], 
+                           method = method, timeframe=timeframe))
+  
+      if (first.growth){
+        growth = new.dat
+        first.growth = F
+      }else{
+        growth = rbind(growth, new.dat)
+      }
+    }
+  
+    
+    # # get all the intro times
+    # indices = which(clusters$filename==as.character(mrsi[i,'filename']))
+    # for (j in seq(1,length(indices))){
+    #   method = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[2]]
+    #   timeframe = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]]
+    #   name = paste('Tree.', clusters[indices[[j]], "number"], '.trueHeight',sep='')
+    #   name2 = gsub("Height","Origin", name)
+    # 
+    #   hpdInt = HPDinterval(as.mcmc(t[,name]))
+    #   hpdInt.origin = HPDinterval(as.mcmc(t[,name2]))
+    #   
+    #   new.dat = data.frame( nr=clusters[indices[[j]], "number"], size = clusters[indices[[j]], "size"],
+    #                  height.mean=mrsi[i,"date"]-median(t[,name])*365, height.lower=mrsi[i,"date"]-hpdInt[1,'lower']*365, height.upper=mrsi[i,"date"]-hpdInt[1,'upper']*365,
+    #                  origin.mean=mrsi[i,"date"]-median(t[,name2])*365, origin.lower=mrsi[i,"date"]-hpdInt.origin[1,'lower']*365, origin.upper=mrsi[i,"date"]-hpdInt.origin[1,'upper']*365,
+    #                  method = method, 
+    #                  timeframe=timeframe)
+    #   c = c+1;
+    #   if (first.intro){
+    #     intros = new.dat
+    #     first.intro = F
+    #   }else{
+    #     intros = rbind(intros, new.dat)
+    #   }
+    # }
+    # 
+  }
+}
+
+
+p = ggplot(dat) + geom_line(aes(x=time, y=Ne.mean, color=timeframe)) +
+  geom_ribbon(aes(x=time, ymin=Ne.lower, ymax=Ne.upper, fill=timeframe), alpha=0.2)+
+  facet_wrap(method~., ncol=1) +
+  scale_x_date(limits=c(as.Date('2020-01-31'), max(mrsi$date)))  +
+  scale_color_OkabeIto()+
+  scale_fill_OkabeIto()+
+  scale_y_continuous(breaks=seq(-6.9078,6.9078,2.3026), labels=c(0.001,0.010,0.1,1,10,100,1000),sec.axis = sec_axis(~ .,breaks=seq(-6.9078,6.9078,2.3026), labels=c(0.001,0.010,0.1,1,10,100,1000), name = "Ne")) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  coord_cartesian(ylim=c(-6.9078,6.9078))
+plot(p)
+
+ggsave(plot=p, file=paste(path, 'figures/skygrid.pdf', sep='/'), height=5,width=9)
+
+
+p = ggplot(growth) + geom_path(aes(x=time, y=growth.mean, color=timeframe)) +
+  geom_ribbon(aes(x=time, ymin=growth.lower, ymax=growth.upper, fill=timeframe), alpha=0.2) +
+  facet_wrap(method~., ncol=1) +
+  scale_x_date(limits=c(as.Date('2020-02-01'), max(mrsi$date)))  +
+  coord_cartesian(ylim=c(-250,300))+
+  scale_color_OkabeIto()+
+  scale_fill_OkabeIto()+
+  theme_minimal()
+
+doubling_labels = c(-1,-2,-6,6,2,1)
+p <- p + scale_y_continuous(sec.axis = sec_axis(~ .,breaks=round(log(2)/doubling_labels*365), labels=doubling_labels, name = "doubling times in days"))
+plot(p)
+
+ggsave(plot=p, file=paste(path, 'figures/coal_growth.pdf', sep='/'), height=5,width=9)
+# 
+# p = ggplot(intros) + geom_point(aes(x=height.mean, y=nr, color=timeframe, size=size)) +
+#   geom_errorbarh(aes(xmin=height.lower, xmax=height.upper, y=nr, color=timeframe)) +
+#   facet_grid(method~timeframe) +
+#   scale_x_date()  +
+#   scale_color_OkabeIto()+
+#   scale_fill_OkabeIto()+
+#   theme_minimal() +
+#   ggtitle('Common ancestor times of clusters')
+# plot(p)
+# ggsave(plot=p, file=paste(path, 'figures/mrca.pdf', sep='/'), height=5,width=9)
+```
+
+# 
+
+```{r bd_skyline}
+first = T
+first.growth = T
+first.intro = T
+for (i in seq(1,length(mrsi$filename))){
+  if (startsWith( as.character(mrsi[i,"filename"]),"multibd")){
+    # read in the log file
+    t = read.table(paste(path,'/out/', mrsi[i,'filename'], '.log',sep=""), sep="\t", header=T)
+    # take a 10% burnin
+    t = t[-seq(1,length(t$posterior)/10),]
+    # read in all the Ne's
+    for (j in seq(1,length(time))){
+      method = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[2]]
+      timeframe = timeframename[as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])]
+      name = paste('logReproductiveNumber',length(time)-j+1,sep="")
+      hpdInt = HPDinterval(as.mcmc(t[,name]))
+      new.dat = data.frame(time=mrsi[i,"date"]-time[j]*365, 
+                           Re.mean=median(t[,name]), Re.lower=hpdInt[1,'lower'], Re.upper=hpdInt[1,'upper'], 
+                           method = method, timeframe=timeframe)
+      new.dat = rbind(new.dat, data.frame(time=mrsi[i,"date"]-time[j]*365-6.9, 
+                           Re.mean=median(t[,name]), Re.lower=hpdInt[1,'lower'], Re.upper=hpdInt[1,'upper'], 
+                           method = method, timeframe=timeframe))
+
+      if (first){
+        dat = new.dat
+        first = F
+      }else{
+        dat = rbind(dat, new.dat)
+      }
+    }
+  }
+}
+
+p = ggplot(dat) + geom_path(aes(x=time, y=exp(Re.mean), color=timeframe)) +
+  geom_ribbon(aes(x=time, ymin=exp(Re.lower), ymax=exp(Re.upper), fill=timeframe), alpha=0.2) +
+  scale_x_date(limits=c(as.Date('2020-02-01'), max(mrsi$date)))  +
+  coord_cartesian(ylim=c(0,8))+
+  scale_color_OkabeIto()+
+  scale_fill_OkabeIto()+
+  theme_minimal()
+
+# doubling_labels = c(-1,-2,-6,6,2,1)
+# p <- p + scale_y_continuous(sec.axis = sec_axis(~ .,breaks=round(log(2)/doubling_labels*365), labels=doubling_labels, name = "doubling times in days"))
+plot(p)
+ggsave(plot=p, file=paste(path, 'figures/bdsky_Re.pdf', sep='/'), height=5,width=9)
+
+
+```
+
+
 # Doubling times in different regions
 ```{r densitree, include=FALSE}
 library(phytools)

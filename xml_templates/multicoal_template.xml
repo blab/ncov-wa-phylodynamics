@@ -25,7 +25,7 @@ insert_data
 
 <branchRateModel id="ClockModel" spec="beast.evolution.branchratemodel.StrictClockModel" clock.rate="@clock"/>
 
-<run id="mcmc" spec="MCMC" chainLength="100000000">
+<run id="mcmc" spec="MCMC" chainLength="250000000">
     <state id="state" spec="State" storeEvery="5000">
         insert_tree
         <parameter id="clock" spec="parameter.RealParameter" name="stateNode">0.0008</parameter>

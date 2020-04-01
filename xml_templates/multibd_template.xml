@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><beast beautitemplate='Standard' beautistatus='' namespace="beast.core:beast.evolution.alignment:beast.evolution.tree.coalescent:beast.core.util:beast.evolution.nuc:beast.evolution.operators:beast.evolution.sitemodel:beast.evolution.substitutionmodel:beast.evolution.likelihood:beast.mascot.dynamics:beast.mascot.distribution:beast.mascot.logger:bdsky" version="2.0">
+
+insert_data
+
+<map name="Uniform" >beast.math.distributions.Uniform</map>
+<map name="Exponential" >beast.math.distributions.Exponential</map>
+<map name="LogNormal" >beast.math.distributions.LogNormalDistributionModel</map>
+<map name="Normal" >beast.math.distributions.Normal</map>
+<map name="Beta" >beast.math.distributions.Beta</map>
+<map name="Gamma" >beast.math.distributions.Gamma</map>
+<map name="LaplaceDistribution" >beast.math.distributions.LaplaceDistribution</map>
+<map name="prior" >beast.math.distributions.Prior</map>
+<map name="InverseGamma" >beast.math.distributions.InverseGamma</map>
+<map name="OneOnX" >beast.math.distributions.OneOnX</map>
+
+<siteModel id="SiteModel" spec="SiteModel" gammaCategoryCount="4" shape="@gamma">
+    <parameter id="mutationRate.s:sequences_meta_1" spec="parameter.RealParameter" estimate="false" name="mutationRate">1.0</parameter>
+    <parameter id="proportionInvariant.s:sequences_meta_1" spec="parameter.RealParameter" estimate="false" lower="0.0" name="proportionInvariant" upper="1.0">0.0</parameter>
+    <substModel id="hky.s:sequences_meta_1" spec="HKY" kappa="@kappa">
+        <frequencies id="estimatedFreqs.s:sequences_meta_1" spec="Frequencies" frequencies="@freqs"/>
+    </substModel>
+</siteModel>
+
+<branchRateModel id="ClockModel" spec="beast.evolution.branchratemodel.StrictClockModel" clock.rate="@clock"/>
+
+<run id="mcmc" spec="MCMC" chainLength="250000000">
+  <state id="state" storeEvery="5000">
+    insert_tree
+
+    <parameter id="absoluteReproductiveNumber" dimension="1" lower="0.0" name="stateNode">1</parameter>
+    <parameter id="logReproductiveNumber" dimension="11" name="stateNode">0</parameter>
+    <parameter id="becomeUninfectiousRate" dimension="1" lower="0.0" name="stateNode">36.5000</parameter>
+    <parameter id="samplingProportion" dimension="1" lower="0.0" name="stateNode" upper="1.0">1</parameter>
+    <parameter id="sigma.Ne" dimension="1" lower="0.0" name="stateNode" upper="15">1</parameter>
+
+    <parameter id="clock" spec="parameter.RealParameter" name="stateNode">0.0008</parameter>
+    <parameter id="kappa" spec="parameter.RealParameter" lower="0.0" name="stateNode">6.5</parameter>
+    <parameter id="gamma" spec="parameter.RealParameter" name="stateNode">0.05</parameter>
+    <parameter id="freqs" spec="parameter.RealParameter" dimension="4" lower="0.0" name="stateNode" upper="1.0">0.25</parameter>
+    insert_rate_shifts
+
+  </state>
+
+  insert_init_tree
+  <distribution id="posterior" spec="util.CompoundDistribution">
+    <distribution id="prior" spec="util.CompoundDistribution">
+      insert_priors
+    </distribution>
+    <distribution id="likelihood" spec="util.CompoundDistribution" useThreads="true">
+      insert_likelihood
+    </distribution>
+  </distribution>
+  insert_operators
+
+  <logger id="tracelog" spec="Logger" fileName="$(filebase).log" logEvery="100000" model="@posterior" sanitiseHeaders="true" sort="smart">
+    <log idref="posterior"/>
+    <log idref="likelihood"/>
+    <log idref="prior"/>
+    insert_logs
+  </logger>
+
+  <logger id="screenlog" mode="compound" logEvery="100000">
+    <log idref="posterior"/>
+    <log id="ESS.0" spec="util.ESS" arg="@posterior"/>
+    <log idref="likelihood"/>
+    <log idref="prior"/>
+  </logger>
+  insert_logtree
+
+</run>
+</beast>
