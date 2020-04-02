@@ -66,7 +66,7 @@ for (i in seq(1,length(mrsi$filename))){
     }
     
     # get all the growth rates
-    average_over = 1
+    average_over = 2
     for (j in seq(1,length(time)-average_over,1)){
       method = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[2]]
       timeframe = timeframename[as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])]
@@ -99,33 +99,15 @@ for (i in seq(1,length(mrsi$filename))){
     }
   
     
-    # # get all the intro times
-    # indices = which(clusters$filename==as.character(mrsi[i,'filename']))
-    # for (j in seq(1,length(indices))){
-    #   method = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[2]]
-    #   timeframe = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]]
-    #   name = paste('Tree.', clusters[indices[[j]], "number"], '.trueHeight',sep='')
-    #   name2 = gsub("Height","Origin", name)
-    # 
-    #   hpdInt = HPDinterval(as.mcmc(t[,name]))
-    #   hpdInt.origin = HPDinterval(as.mcmc(t[,name2]))
-    #   
-    #   new.dat = data.frame( nr=clusters[indices[[j]], "number"], size = clusters[indices[[j]], "size"],
-    #                  height.mean=mrsi[i,"date"]-median(t[,name])*365, height.lower=mrsi[i,"date"]-hpdInt[1,'lower']*365, height.upper=mrsi[i,"date"]-hpdInt[1,'upper']*365,
-    #                  origin.mean=mrsi[i,"date"]-median(t[,name2])*365, origin.lower=mrsi[i,"date"]-hpdInt.origin[1,'lower']*365, origin.upper=mrsi[i,"date"]-hpdInt.origin[1,'upper']*365,
-    #                  method = method, 
-    #                  timeframe=timeframe)
-    #   c = c+1;
-    #   if (first.intro){
-    #     intros = new.dat
-    #     first.intro = F
-    #   }else{
-    #     intros = rbind(intros, new.dat)
-    #   }
-    # }
-    # 
   }
 }
+
+levels(dat$method) <- c("correlated Ne's", "uncorrelated Ne's", "correlated Ne trajectories")
+dat$method <- factor(dat$method, levels =c("correlated Ne's", "correlated Ne trajectories", "uncorrelated Ne's"))
+
+levels(growth$method) <- c("correlated Ne's", "uncorrelated Ne's", "correlated Ne trajectories")
+growth$method <- factor(growth$method, levels =c("correlated Ne's", "correlated Ne trajectories", "uncorrelated Ne's"))
+
 
 
 p = ggplot(dat) + geom_line(aes(x=time, y=Ne.mean, color=timeframe)) +
@@ -136,7 +118,7 @@ p = ggplot(dat) + geom_line(aes(x=time, y=Ne.mean, color=timeframe)) +
   scale_fill_OkabeIto()+
   scale_y_continuous(breaks=seq(-6.9078,6.9078,2.3026), labels=c(0.001,0.010,0.1,1,10,100,1000),sec.axis = sec_axis(~ .,breaks=seq(-6.9078,6.9078,2.3026), labels=c(0.001,0.010,0.1,1,10,100,1000), name = "Ne")) +
   theme_minimal() +
-  theme(legend.position = "none") +
+  theme(legend.position = "none") + 
   coord_cartesian(ylim=c(-6.9078,6.9078))
 plot(p)
 
@@ -147,7 +129,7 @@ p = ggplot(growth) + geom_path(aes(x=time, y=growth.mean, color=timeframe)) +
   geom_ribbon(aes(x=time, ymin=growth.lower, ymax=growth.upper, fill=timeframe), alpha=0.2) +
   facet_wrap(method~., ncol=1) +
   scale_x_date(limits=c(as.Date('2020-02-01'), max(mrsi$date)))  +
-  coord_cartesian(ylim=c(-250,300))+
+  coord_cartesian(ylim=c(-150,200))+
   scale_color_OkabeIto()+
   scale_fill_OkabeIto()+
   theme_minimal()
@@ -157,126 +139,67 @@ p <- p + scale_y_continuous(sec.axis = sec_axis(~ .,breaks=round(log(2)/doubling
 plot(p)
 
 ggsave(plot=p, file=paste(path, 'figures/coal_growth.pdf', sep='/'), height=5,width=9)
-# 
-# p = ggplot(intros) + geom_point(aes(x=height.mean, y=nr, color=timeframe, size=size)) +
-#   geom_errorbarh(aes(xmin=height.lower, xmax=height.upper, y=nr, color=timeframe)) +
-#   facet_grid(method~timeframe) +
-#   scale_x_date()  +
-#   scale_color_OkabeIto()+
-#   scale_fill_OkabeIto()+
-#   theme_minimal() +
-#   ggtitle('Common ancestor times of clusters')
-# plot(p)
-# ggsave(plot=p, file=paste(path, 'figures/mrca.pdf', sep='/'), height=5,width=9)
+
 ```
 
-# 
+# Plot the lineages through time for each introduction
 
-```{r bd_skyline}
+```{r ltt}
+
+filename = paste('multicoal_skygrid_',length(timeframename), sep="")
+
+# read in the log file 
+t = read.table(paste(path,'/out/', filename, '.log',sep=""), sep="\t", header=T)
+# take a 10% burnin
+t = t[-seq(1,length(t$posterior)/10),]
+
+# get all the intro times
+indices = which(clusters$filename==filename)
+
+# read in the ltt values
+ltt = read.table(paste(path,'/results/ltt_mean.tsv',sep=""), sep="\t", header=T)
+
+ltt.clusters = clusters[which(clusters$filename==filename),]
+c = 1;
+current_max = 0;
+plot_offset = 5;
 first = T
-first.growth = T
-first.intro = T
-for (i in seq(1,length(mrsi$filename))){
-  if (startsWith( as.character(mrsi[i,"filename"]),"multibd")){
-    # read in the log file
-    t = read.table(paste(path,'/out/', mrsi[i,'filename'], '.log',sep=""), sep="\t", header=T)
-    # take a 10% burnin
-    t = t[-seq(1,length(t$posterior)/10),]
-    # read in all the Ne's
-    for (j in seq(1,length(time))){
-      method = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[2]]
-      timeframe = timeframename[as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])]
-      name = paste('logReproductiveNumber',length(time)-j+1,sep="")
-      hpdInt = HPDinterval(as.mcmc(t[,name]))
-      new.dat = data.frame(time=mrsi[i,"date"]-time[j]*365, 
-                           Re.mean=median(t[,name]), Re.lower=hpdInt[1,'lower'], Re.upper=hpdInt[1,'upper'], 
-                           method = method, timeframe=timeframe)
-      new.dat = rbind(new.dat, data.frame(time=mrsi[i,"date"]-time[j]*365-6.9, 
-                           Re.mean=median(t[,name]), Re.lower=hpdInt[1,'lower'], Re.upper=hpdInt[1,'upper'], 
-                           method = method, timeframe=timeframe))
+for (j in seq(2,length(ltt))){
+  # get the offset in days 
+  name = paste('Tree.', gsub("X","",labels(ltt)[[2]][j]), '.trueHeight',sep='')
+  name2 = gsub("trueHeight","height", name) 
+  offset  = round(t[1,name]-t[1,name2]*365)
+  
+  max_val = max(ltt[,j])
+  
+  
 
-      if (first){
-        dat = new.dat
-        first = F
-      }else{
-        dat = rbind(dat, new.dat)
-      }
+  for (k in seq(1,length(ltt$day))){
+    new.dat = data.frame(time = mrsi[which(mrsi$filename==filename), "date"] - offset -ltt[k,"day"],
+                         val = ltt[k,j], val_offset = (current_max + max_val)/2, cluster = as.numeric(gsub("X","",labels(ltt)[[2]][j])))
+      
+    if (first){
+      ltt.dat = new.dat
+      first = F
+    }else{
+      ltt.dat = rbind(ltt.dat, new.dat)
     }
+
   }
+  
+  current_max = current_max + max_val + plot_offset
 }
 
-p = ggplot(dat) + geom_path(aes(x=time, y=exp(Re.mean), color=timeframe)) +
-  geom_ribbon(aes(x=time, ymin=exp(Re.lower), ymax=exp(Re.upper), fill=timeframe), alpha=0.2) +
-  scale_x_date(limits=c(as.Date('2020-02-01'), max(mrsi$date)))  +
-  coord_cartesian(ylim=c(0,8))+
+
+
+p = ggplot(ltt.dat) + geom_ribbon(aes(x=time, ymin=val_offset-val/2,ymax=val_offset+val/2 color=)) +
+  facet_grid(method~timeframe) +
+  scale_x_date()  +
   scale_color_OkabeIto()+
   scale_fill_OkabeIto()+
-  theme_minimal()
-
-# doubling_labels = c(-1,-2,-6,6,2,1)
-# p <- p + scale_y_continuous(sec.axis = sec_axis(~ .,breaks=round(log(2)/doubling_labels*365), labels=doubling_labels, name = "doubling times in days"))
+  theme_minimal() +
+  ggtitle('Common ancestor times of clusters')
 plot(p)
-ggsave(plot=p, file=paste(path, 'figures/bdsky_Re.pdf', sep='/'), height=5,width=9)
-
-
+ggsave(plot=p, file=paste(path, 'figures/mrca.pdf', sep='/'), height=5,width=9)
 ```
 
-
-# Doubling times in different regions
-```{r densitree, include=FALSE}
-library(phytools)
-packageVersion("phytools")
-
-# sampling time of the most recent sampled individual
-mrsi = as.Date("2020-03-10")
-
-
-t.wa = read.table(paste(path,'/out/cluster_wa.log',sep="/"), sep="\t", header=T)
-t.wa = t.wa[-seq(1,length(t.wa$posterior)/10),]
-t.wa$cluster = "Washington State"
-
-t = rbind(t.wa)
-
-p_growth <- ggplot(t) + geom_density(aes(x=log(2)/growthRate*365, fill=cluster), alpha=0.5)  + 
-  theme(legend.position = "top") +
-  xlab("doubling time in days")+
-  ylab("probability density")+
-  scale_color_OkabeIto()+
-  ggtitle("Estimated doubling times") +
-  scale_x_continuous(limits=c(0,10)) +
-  theme_minimal() +
-  theme(legend.position = "none")
-plot(p_growth)
-ggsave(file="figures/growth_2020319.png", height=3.5, width=6)
-
-p_date <- ggplot(t) + 
-  geom_histogram(aes(x=mrsi-Tree.height*365), alpha=0.8)  + 
-  theme(legend.position = "top") +
-  xlab("")+
-  ylab("probability density")+
-  scale_color_OkabeIto()+
-  ggtitle("common ancestor time WA cluster") +
-  scale_x_date()+
-  theme_minimal() +
-  theme(legend.position = "none")
-plot(p_date)
-
-ggsave(plot=p_date,paste(path, "common_ancestor_wa.png", sep="/"), height=3,width= 4)
-
-
-
-```
-
-
-# Genome data used
-
-These analyses have been made possible by the public sharing of data.
-The analysis here used the following sequences:
-
-```{r data, echo=FALSE}
-library(knitr)
-data = read.table(file=paste(path, "/sequences_used.csv", sep=""), sep="|", header=T)
-kable(data)
-```
-
-# References

@@ -1,17 +1,20 @@
 % function [] = getWACluster()
 threshold = 5;
 
+% exclude WA1 
 exlude = {'USA/WA1/2020'};
-
 sample_cutoff = {'2020-03-10', '2020-03-17', '2020-03-24'};
+
+end_date = '2020-01-14';
+
 s = fopen('../config/mrsi.tsv', 'w');
 cls = fopen('../config/cluster_size.tsv', 'w');
 
 fprintf(s,'filename\tmrsi\n');
 fprintf(cls,'filename\tnumber\tsize\n');
 
-rate_shifts = [7/365:7/365:0.2];
-for sc = 1 : length(sample_cutoff)
+for sc = 3 : length(sample_cutoff)
+    rate_shifts = [7/366:7/366:(datenum(sample_cutoff(sc))-datenum(end_date))/366];
     
     date_cutoff = datenum(sample_cutoff{sc});
     % read in iq tree from nextstrain pipeline
@@ -378,6 +381,13 @@ for sc = 1 : length(sample_cutoff)
                 fprintf(g,'\t\t\t\t<prior id="Sigmaprior2" name="distribution" x="@samplingProportion">\n');
                 fprintf(g,'\t\t\t\t\t<LogNormal id="Uniform.4" name="distr" meanInRealSpace="true" M="0.01" S="1"/>\n');
                 fprintf(g,'\t\t\t\t</prior>\n');
+                
+                for a = 1 : length(wa_clusters)
+                    fprintf(g,'\t\t\t\t<prior id="RootLengthPrior:lc_%d" name="distribution" x="@rootLength:lc_%d">\n',a,a);
+                    fprintf(g,'\t\t\t\t\t<LogNormal id="RootLengthPriorLogNormal:lc_%d" name="distr" meanInRealSpace="true" M="0.025" S="0.25"/>\n', a);
+                    fprintf(g,'\t\t\t\t</prior>\n');
+                end
+
 
                 if sp==1
                     fprintf(g,'\t\t\t\t<prior id="Sigmaprior1" name="distribution" x="@sigma.Ne">\n');
@@ -469,7 +479,7 @@ for sc = 1 : length(sample_cutoff)
                     fprintf(g,'\t\t\t<log id="TreeStatsLogger:%d" spec="beast.evolution.tree.TreeStatLogger" tree="@Tree.t:lc_%d"/>\n',a,a);
                 end
                 for a = 1 : length(wa_clusters)
-                    fprintf(g,'\t\t\t<log idref="BitrhDeathSkySerial.t:lc_%d"/>\n',a,a,a,a);
+                    fprintf(g,'\t\t\t<log idref="BitrhDeathSkySerial.t:lc_%d"/>\n',a);
                 end
 
             elseif contains(line, 'insert_logtree')
