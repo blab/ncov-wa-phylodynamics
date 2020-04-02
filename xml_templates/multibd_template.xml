@@ -28,7 +28,6 @@ insert_data
     insert_tree
 
     <parameter id="absoluteReproductiveNumber" dimension="1" lower="0.0" name="stateNode">1</parameter>
-    <parameter id="logReproductiveNumber" dimension="11" name="stateNode">0</parameter>
     <parameter id="becomeUninfectiousRate" dimension="1" lower="0.0" name="stateNode">36.5000</parameter>
     <parameter id="samplingProportion" dimension="1" lower="0.0" name="stateNode" upper="1.0">1</parameter>
     <parameter id="sigma.Ne" dimension="1" lower="0.0" name="stateNode" upper="15">1</parameter>

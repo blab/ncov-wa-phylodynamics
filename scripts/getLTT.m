@@ -3,12 +3,12 @@ tree_files = dir('../out/multicoal_skygrid_3*.trees');
 
 max_day = 70;
 
-skip_nr = 200;
+skip_nr = 100;
 
 clear treeDat;
 
 for i = 1 : length(tree_files)
-    f = fopen([tree_files(i).folder '/' tree_files(i).name])
+    f = fopen([tree_files(i).folder '/' tree_files(i).name]);
     trees = cell(0,0);
     c = 1;
     all_vals = zeros(1,max_day);

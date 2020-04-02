@@ -13,7 +13,7 @@ cls = fopen('../config/cluster_size.tsv', 'w');
 fprintf(s,'filename\tmrsi\n');
 fprintf(cls,'filename\tnumber\tsize\n');
 
-for sc = 3 : length(sample_cutoff)
+for sc = 1 : length(sample_cutoff)
     rate_shifts = [7/366:7/366:(datenum(sample_cutoff(sc))-datenum(end_date))/366];
     
     date_cutoff = datenum(sample_cutoff{sc});
@@ -366,7 +366,7 @@ for sc = 3 : length(sample_cutoff)
                 for a = 1 : length(wa_clusters)
                     fprintf(g,'\t\t\t<parameter id="rootLength:lc_%d" name="stateNode" upper="0.1" dimension="1">0.01</parameter>\n',a);
                 end
-                fprintf(g,'\t\t\t<parameter id="rateShifts" name="stateNode">%s</parameter>\n', sprintf('%f ', rate_shifts));
+                fprintf(g,'\t\t\t<parameter id="logReproductiveNumber" dimension="%d" name="stateNode">0</parameter>\n', length(rate_shifts)+1);
             elseif contains(line, 'insert_init_tree')
                 for a = 1 : length(wa_clusters)
                     seqs = strsplit(wa_clusters{a}, ',');

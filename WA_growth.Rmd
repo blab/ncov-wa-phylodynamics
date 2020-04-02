@@ -163,12 +163,15 @@ ltt.clusters = clusters[which(clusters$filename==filename),]
 c = 1;
 current_max = 0;
 plot_offset = 5;
+
 first = T
+first.rep = T
+
 for (j in seq(2,length(ltt))){
   # get the offset in days 
   name = paste('Tree.', gsub("X","",labels(ltt)[[2]][j]), '.trueHeight',sep='')
   name2 = gsub("trueHeight","height", name) 
-  offset  = round(t[1,name]-t[1,name2]*365)
+  offset  = round((t[1,name]-t[1,name2])*365)
   
   max_val = max(ltt[,j])
   
@@ -176,30 +179,52 @@ for (j in seq(2,length(ltt))){
 
   for (k in seq(1,length(ltt$day))){
     new.dat = data.frame(time = mrsi[which(mrsi$filename==filename), "date"] - offset -ltt[k,"day"],
-                         val = ltt[k,j], val_offset = (current_max + max_val)/2, cluster = as.numeric(gsub("X","",labels(ltt)[[2]][j])))
-      
+                         val = ltt[k,j], val_offset = current_max + max_val/2, cluster = as.numeric(gsub("X","",labels(ltt)[[2]][j])))
+    
+    if (round(ltt[k,j])>0){
+      new.rep.dat = data.frame(time = rep(mrsi[which(mrsi$filename==filename), "date"] - offset -ltt[k,"day"], round(ltt[k,j])),
+                               cluster = as.numeric(gsub("X","",labels(ltt)[[2]][j])))
+      if (first.rep){
+        rep.dat = new.rep.dat
+        first.rep=F
+      }else{
+        rep.dat = rbind(rep.dat, new.rep.dat)
+      }
+    }
     if (first){
       ltt.dat = new.dat
       first = F
     }else{
       ltt.dat = rbind(ltt.dat, new.dat)
     }
-
   }
+  
+  
   
   current_max = current_max + max_val + plot_offset
 }
 
 
 
-p = ggplot(ltt.dat) + geom_ribbon(aes(x=time, ymin=val_offset-val/2,ymax=val_offset+val/2 color=)) +
-  facet_grid(method~timeframe) +
-  scale_x_date()  +
-  scale_color_OkabeIto()+
-  scale_fill_OkabeIto()+
+p = ggplot(ltt.dat) + geom_ribbon(aes(x=time, ymin=val_offset-val/2, ymax=val_offset+val/2, group=cluster)) +
+  scale_x_date(limits=c(as.Date('2020-02-01'), max(mrsi$date)))  +
   theme_minimal() +
-  ggtitle('Common ancestor times of clusters')
+  ggtitle('Lineages through time of different local outbreak clusters')
 plot(p)
-ggsave(plot=p, file=paste(path, 'figures/mrca.pdf', sep='/'), height=5,width=9)
+ggsave(plot=p, file=paste(path, 'figures/coal_ltt.pdf', sep='/'), height=5,width=9)
+
+
+p = ggplot(rep.dat) + geom_histogram(aes(x=time, fill=as.character(cluster)), binwidth=1, position = "stack") +
+  scale_x_date(limits=c(as.Date('2020-02-01'), max(mrsi$date)))  +
+  scale_fill_discrete_qualitative()+
+  theme_minimal() +
+  theme(legend.position = "none")+
+  ggtitle('Lineages through time of different local outbreak clusters')
+plot(p)
+ggsave(plot=p, file=paste(path, 'figures/coal_stacked.pdf', sep='/'), height=5,width=9)
+
+
+
+
 ```
 
