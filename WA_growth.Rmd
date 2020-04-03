@@ -37,12 +37,15 @@ mrsi$date = as.Date(mrsi$mrsi)
 clusters = read.table(paste(path,'/config/cluster_size.tsv',sep="/"), sep="\t", header=T)
 
 timeframename = c('samples until 2020-03-11', 'samples until 2020-03-17', 'samples until 2020-03-24')
+end_time = as.Date('2020-01-14')
 
-time = seq(0,0.2,7/365)
 first = T
 first.growth = T
 first.intro = T
 for (i in seq(1,length(mrsi$filename))){
+  time_diff = mrsi[i,"date"]-end_time
+  time = seq(0,as.numeric(time_diff),7)
+  
   if (!startsWith( as.character(mrsi[i,"filename"]),"multibd")){
     # read in the log file
     t = read.table(paste(path,'/out/', mrsi[i,'filename'], '.log',sep=""), sep="\t", header=T)
@@ -54,7 +57,7 @@ for (i in seq(1,length(mrsi$filename))){
       timeframe = timeframename[as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])]
       name = paste('Ne',j,sep="")
       hpdInt = HPDinterval(as.mcmc(t[,name]))
-      new.dat = data.frame(time=mrsi[i,"date"]-time[j]*365, 
+      new.dat = data.frame(time=mrsi[i,"date"]-time[j], 
                            Ne.mean=median(t[,name]), Ne.lower=hpdInt[1,'lower'], Ne.upper=hpdInt[1,'upper'], 
                            method = method, timeframe=timeframe)
       if (first){
@@ -74,20 +77,25 @@ for (i in seq(1,length(mrsi$filename))){
       name1 = paste('Ne',j,sep="")
       name2 = paste('Ne',j+average_over,sep="")
       
-      values = (t[,name1]-t[,name2])/(time[j+average_over]-time[j])
+      values = (t[,name1]-t[,name2])/(time[j+average_over]-time[j])*365
       
       doubling = log(2)/values
+      R = 1+doubling/36.5
+      R[which(R<=0)] = 0
       hpdInt = HPDinterval(as.mcmc(values))
       hpdInt.doubling = HPDinterval(as.mcmc(doubling))
-  
-      new.dat = data.frame(time=mrsi[i,"date"]-time[j]*365, 
+      hpdInt.R = HPDinterval(as.mcmc(R))
+ 
+      new.dat = data.frame(time=mrsi[i,"date"]-time[j], 
                            growth.mean=median(values), growth.lower=hpdInt[1,'lower'], growth.upper=hpdInt[1,'upper'], 
                            doubling.mean=median(doubling), doubling.lower=hpdInt.doubling[1,'lower'], doubling.upper=hpdInt.doubling[1,'upper'], 
+                           R.mean=median(r), R.lower=hpdInt.R[1,'lower'], R.upper=hpdInt.R[1,'upper'], 
                            method = method, timeframe=timeframe)
       
-      new.dat = rbind(new.dat, data.frame(time=mrsi[i,"date"]-time[j+1]*365 +0.01, 
+      new.dat = rbind(new.dat, data.frame(time=mrsi[i,"date"]-time[j+1] +0.01, 
                            growth.mean=median(values), growth.lower=hpdInt[1,'lower'], growth.upper=hpdInt[1,'upper'], 
                            doubling.mean=median(doubling), doubling.lower=hpdInt.doubling[1,'lower'], doubling.upper=hpdInt.doubling[1,'upper'], 
+                           R.mean=median(r), R.lower=hpdInt.R[1,'lower'], R.upper=hpdInt.R[1,'upper'], 
                            method = method, timeframe=timeframe))
   
       if (first.growth){
@@ -139,6 +147,38 @@ p <- p + scale_y_continuous(sec.axis = sec_axis(~ .,breaks=round(log(2)/doubling
 plot(p)
 
 ggsave(plot=p, file=paste(path, 'figures/coal_growth.pdf', sep='/'), height=5,width=9)
+
+
+p = ggplot(growth) + geom_path(aes(x=time, y=growth.mean, color=timeframe)) +
+  geom_ribbon(aes(x=time, ymin=growth.lower, ymax=growth.upper, fill=timeframe), alpha=0.2) +
+  facet_wrap(method~., ncol=1) +
+  scale_x_date(limits=c(as.Date('2020-02-01'), max(mrsi$date)))  +
+  coord_cartesian(ylim=c(-150,200))+
+  scale_color_OkabeIto()+
+  scale_fill_OkabeIto()+
+  theme_minimal()
+
+doubling_labels = c(-1,-2,-6,6,2,1)
+p <- p + scale_y_continuous(sec.axis = sec_axis(~ .,breaks=round(log(2)/doubling_labels*365), labels=doubling_labels, name = "doubling times in days"))
+plot(p)
+
+ggsave(plot=p, file=paste(path, 'figures/coal_growth.pdf', sep='/'), height=5,width=9)
+
+p = ggplot(growth) + geom_path(aes(x=time, y=growth.mean, color=timeframe)) +
+  geom_ribbon(aes(x=time, ymin=growth.lower, ymax=growth.upper, fill=timeframe), alpha=0.2) +
+  facet_wrap(method~., ncol=1) +
+  scale_x_date(limits=c(as.Date('2020-02-01'), max(mrsi$date)))  +
+  coord_cartesian(ylim=c(-150,200))+
+  scale_color_OkabeIto()+
+  scale_fill_OkabeIto()+
+  theme_minimal()
+
+doubling_labels = c(-1,-2,-6,6,2,1)
+p <- p + scale_y_continuous(sec.axis = sec_axis(~ .,breaks=round(log(2)/doubling_labels*365), labels=doubling_labels, name = "doubling times in days"))
+plot(p)
+
+ggsave(plot=p, file=paste(path, 'figures/coal_R0.pdf', sep='/'), height=5,width=9)
+
 
 ```
 
@@ -214,17 +254,134 @@ plot(p)
 ggsave(plot=p, file=paste(path, 'figures/coal_ltt.pdf', sep='/'), height=5,width=9)
 
 
-p = ggplot(rep.dat) + geom_histogram(aes(x=time, fill=as.character(cluster)), binwidth=1, position = "stack") +
-  scale_x_date(limits=c(as.Date('2020-02-01'), max(mrsi$date)))  +
-  scale_fill_discrete_qualitative()+
+```
+
+```{r bd_skyline}
+# read in the mrsi file
+first = T
+for (i in seq(1,length(mrsi$filename))){
+  time_diff = mrsi[i,"date"]-end_time
+  time = seq(0,as.numeric(time_diff),7)
+  
+  if (startsWith( as.character(mrsi[i,"filename"]),"multibd")){
+    # read in the log file
+    t = read.table(paste(path,'/out/', mrsi[i,'filename'], '.log',sep=""), sep="\t", header=T)
+    # take a 10% burnin
+    t = t[-seq(1,length(t$posterior)/10),]
+    # read in all the Ne's
+    for (j in seq(1,length(time))){
+      method = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[2]]
+      timeframe = timeframename[as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])]
+      name = paste('logReproductiveNumber',length(time)-j+1,sep="")
+      hpdInt = HPDinterval(as.mcmc(t[,name]))
+      new.dat = data.frame(time=mrsi[i,"date"]-time[j], 
+                           Ne.mean=median(t[,name]), Ne.lower=hpdInt[1,'lower'], Ne.upper=hpdInt[1,'upper'], 
+                           method = method, timeframe=timeframe)
+      new.dat = rbind(new.dat, data.frame(time=mrsi[i,"date"]-time[j]+6, 
+                       Ne.mean=median(t[,name]), Ne.lower=hpdInt[1,'lower'], Ne.upper=hpdInt[1,'upper'], 
+                       method = method, timeframe=timeframe))
+
+      if (first){
+        dat = new.dat
+        first = F
+      }else{
+        dat = rbind(dat, new.dat)
+      }
+    }
+  }
+}
+
+p = ggplot(dat) + geom_line(aes(x=time, y=exp(Ne.mean), color=timeframe)) +
+  geom_ribbon(aes(x=time, ymin=exp(Ne.lower), ymax=exp(Ne.upper), fill=timeframe), alpha=0.2)+
+  scale_x_date(limits=c(as.Date('2020-01-31'), max(mrsi$date)))  +
+  scale_color_OkabeIto()+
+  scale_fill_OkabeIto()+
   theme_minimal() +
-  theme(legend.position = "none")+
-  ggtitle('Lineages through time of different local outbreak clusters')
+  theme(legend.position = "none") + 
+  coord_cartesian(ylim=c(0,7))
 plot(p)
-ggsave(plot=p, file=paste(path, 'figures/coal_stacked.pdf', sep='/'), height=5,width=9)
+
+ggsave(plot=p, file=paste(path, 'figures/bdsky_skygrid.pdf', sep='/'), height=5,width=9)
+```
+
+```{r prevalence}
+first = T
+# dispersion parameter (for offspring distribution)
+k = 0.3
+
+# R from exponential growth: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1766383/pdf/rspb20063754.pdf
+# R = 1+r/b
+# set becomin uninfectious rate
+becoming_uninf = 72.2
+
+# translation to I from: https://academic.oup.com/mbe/article/34/11/2982/3952784
+# I = (Ne * R *(1 + 1/k))/gen_time
+# set the generation time
+generation_time = 1/becoming_uninf
+
+for (i in seq(1,length(mrsi$filename))){
+  time_diff = mrsi[i,"date"]-end_time
+  time = seq(0,as.numeric(time_diff),7)
+  
+  if (!startsWith( as.character(mrsi[i,"filename"]),"multibd")){
+    # read in the log file
+    t = read.table(paste(path,'/out/', mrsi[i,'filename'], '.log',sep=""), sep="\t", header=T)
+    # take a 10% burnin
+    t = t[-seq(1,length(t$posterior)/10),]
+    
+    # get all the prevalence estimates
+    average_over=1
+    for (j in seq(1,length(time)-average_over,1)){
+      method = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[2]]
+      timeframe = timeframename[as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])]
+      
+      name1 = paste('Ne',j,sep="")
+      name2 = paste('Ne',j+average_over,sep="")
+      
+      growth = (t[,name1]-t[,name2])/(time[j+average_over]-time[j])*365
+      R = 1+growth/becoming_uninf
+      # set all R smaller than 0 to 0
+      R[which(R<0.25)]=0.25
+      # get the Ne at the mid point for this time interval
+      Ne = exp((t[,name1]+t[,name2])/2)
+      
+      # compute the prevalence
+      I = (Ne*R*(1+1/k))/generation_time
+      
+      hpdInt = HPDinterval(as.mcmc(I))
+
+      new.dat = data.frame(time=mrsi[i,"date"]-(time[j] + time[j+1])/2, 
+                           I.mean=median(I), I.lower=hpdInt[1,'lower'], I.upper=hpdInt[1,'upper'],
+                           method = method, timeframe=timeframe)
+       if (first){
+        prev = new.dat
+        first = F
+      }else{
+        prev = rbind(prev, new.dat)
+      }
+ 
+    }
+  }
+}
+
+levels(prev$method) <- c("correlated Ne's", "uncorrelated Ne's", "correlated Ne trajectories")
+prev$method <- factor(prev$method, levels =c("correlated Ne's", "correlated Ne trajectories", "uncorrelated Ne's"))
+
+p = ggplot(prev[which(prev$timeframe==timeframename[[length(timeframename)]]),]) + geom_line(aes(x=time, y=I.mean, color=timeframe)) +
+  geom_ribbon(aes(x=time, ymin=I.lower, ymax=I.upper, fill=timeframe), alpha=0.2)+
+  facet_wrap(method~., ncol=1) +
+  scale_x_date(limits=c(as.Date('2020-02-15'), max(mrsi$date)))  +
+  scale_y_log10(sec.axis = sec_axis(~ .), name = "Prevalence") +
+  # scale_color_OkabeIto()+
+  scale_fill_OkabeIto()+
+  theme_minimal() +
+  theme(legend.position = "none")  +
+  coord_cartesian(ylim=c(1,200000))
+plot(p)
 
 
+
+ggsave(plot=p, file=paste(path, 'figures/coal_prevalence.pdf', sep='/'), height=5,width=9)
 
 
 ```
-
