@@ -5,7 +5,7 @@ threshold = 5;
 exlude = {'USA/WA1/2020'};
 sample_cutoff = {'2020-03-10', '2020-03-17', '2020-03-24'};
 
-end_date = '2020-01-14';
+end_date = '2020-01-10';
 
 s = fopen('../config/mrsi.tsv', 'w');
 cls = fopen('../config/cluster_size.tsv', 'w');
@@ -14,7 +14,7 @@ fprintf(s,'filename\tmrsi\n');
 fprintf(cls,'filename\tnumber\tsize\n');
 
 for sc = 1 : length(sample_cutoff)
-    rate_shifts = [7/366:7/366:(datenum(sample_cutoff(sc))-datenum(end_date))/366];
+    rate_shifts = [3/366:3/366:(datenum(sample_cutoff(sc))-datenum(end_date))/366];
     
     date_cutoff = datenum(sample_cutoff{sc});
     % read in iq tree from nextstrain pipeline
@@ -361,12 +361,14 @@ for sc = 1 : length(sample_cutoff)
                 end
             elseif contains(line, 'id="sigma.Ne" name="stateNode" dimension="1">') && sp==3
                 fprintf(g, strrep(line,'>2<','>100<'));
-
+ 
             elseif contains(line, 'insert_rate_shifts')
                 for a = 1 : length(wa_clusters)
                     fprintf(g,'\t\t\t<parameter id="rootLength:lc_%d" name="stateNode" upper="0.1" dimension="1">0.01</parameter>\n',a);
                 end
                 fprintf(g,'\t\t\t<parameter id="logReproductiveNumber" dimension="%d" name="stateNode">0</parameter>\n', length(rate_shifts)+1);
+                fprintf(g,'\t\t\t<parameter id="samplingProportion" dimension="%d" name="stateNode">-1</parameter>\n', length(rate_shifts)+1);
+                fprintf(g,'\t\t\t<parameter id="sigma.Sampling" dimension="1" name="stateNode">1</parameter>\n');
             elseif contains(line, 'insert_init_tree')
                 for a = 1 : length(wa_clusters)
                     seqs = strsplit(wa_clusters{a}, ',');
@@ -377,10 +379,6 @@ for sc = 1 : length(sample_cutoff)
                     fprintf(g, '\t\t</init>\n');
                 end
             elseif contains(line, 'insert_priors')
-
-                fprintf(g,'\t\t\t\t<prior id="Sigmaprior2" name="distribution" x="@samplingProportion">\n');
-                fprintf(g,'\t\t\t\t\t<LogNormal id="Uniform.4" name="distr" meanInRealSpace="true" M="0.01" S="1"/>\n');
-                fprintf(g,'\t\t\t\t</prior>\n');
                 
                 for a = 1 : length(wa_clusters)
                     fprintf(g,'\t\t\t\t<prior id="RootLengthPrior:lc_%d" name="distribution" x="@rootLength:lc_%d">\n',a,a);
@@ -400,6 +398,18 @@ for sc = 1 : length(sample_cutoff)
                     fprintf(g,'\t\t\t\t\t</distr>\n');
                     fprintf(g,'\t\t\t\t\t<initialDistr spec="beast.math.distributions.Normal"  mean="0" sigma="1"/>\n');
                     fprintf(g,'\t\t\t\t</distribution>\n');
+                    
+                    fprintf(g,'\t\t\t\t<prior id="Sigmapriodsr1" name="distribution" x="@sigma.Sampling">\n');
+                    fprintf(g,'\t\t\t\t\t<LogNormal id="Unidsform.3" name="distr" M="0" S="1"/>\n');
+                    fprintf(g,'\t\t\t\t</prior>\n');
+
+                    fprintf(g,'\t\t\t\t<distribution spec=''beast.mascotskyline.skyline.LogSmoothingPrior'' NeLog="@samplingProportion">\n');
+                    fprintf(g,'\t\t\t\t\t<distr spec="beast.math.distributions.Normal"  mean="0">\n');
+                    fprintf(g,'\t\t\t\t\t<sigma idref="sigma.Sampling"/>\n');
+                    fprintf(g,'\t\t\t\t\t</distr>\n');
+                    fprintf(g,'\t\t\t\t\t<initialDistr spec="beast.math.distributions.Normal"  mean="-3" sigma="1"/>\n');
+                    fprintf(g,'\t\t\t\t</distribution>\n');
+
 
                 elseif sp==2
                     fprintf(g,'\t\t\t\t<prior id="Sigmaprior1" name="distribution" x="@Ne">\n');
@@ -418,10 +428,10 @@ for sc = 1 : length(sample_cutoff)
                     fprintf(g,'\t\t\t\t\t<reverseTimeArrays id="reverse.lc_%d" estimate="false" spec="parameter.BooleanParameter">true true true true</reverseTimeArrays>\n', a);
                     fprintf(g,'\t\t\t\t\t<parameter id="intervalTimes1.lc_%d" estimate="false" name="birthRateChangeTimes">%s</parameter>\n', a, sprintf('%f ', rate_shifts_offsetted));
                     fprintf(g,'\t\t\t\t\t<parameter id="intervalTimes2.lc_%d" estimate="false" name="deathRateChangeTimes">%s</parameter>\n', a, sprintf('%f ', 0));
-                    fprintf(g,'\t\t\t\t\t<parameter id="intervalTimes3.lc_%d" estimate="false" name="samplingRateChangeTimes">%s</parameter>\n', a, sprintf('%f ', 0));
+                    fprintf(g,'\t\t\t\t\t<parameter id="intervalTimes3.lc_%d" estimate="false" name="samplingRateChangeTimes">%s</parameter>\n', a, sprintf('%f ', rate_shifts_offsetted));
                     fprintf(g,'\t\t\t\t\t<truncatedRealParameter name="logReproductiveNumber" spec="beast.evolution.speciation.TruncatedRealParameter" id="truncatedParam1.lc_%d" parameter="@logReproductiveNumber" offset="%d"/>\n', a, offset_val);
                     fprintf(g,'\t\t\t\t\t<truncatedRealParameter name="becomeUninfectiousRate" spec="beast.evolution.speciation.TruncatedRealParameter" id="truncatedParam2.lc_%d" parameter="@becomeUninfectiousRate" offset="%d"/>\n', a, 0);
-                    fprintf(g,'\t\t\t\t\t<truncatedRealParameter name="samplingProportion" spec="beast.evolution.speciation.TruncatedRealParameter" id="truncatedParam3.lc_%d" parameter="@samplingProportion" offset="%d"/>\n', a, 0);
+                    fprintf(g,'\t\t\t\t\t<truncatedRealParameter name="samplingProportion" spec="beast.evolution.speciation.TruncatedRealParameter" isLog="true" id="truncatedParam3.lc_%d" parameter="@samplingProportion" offset="%d"/>\n', a, offset_val);
                     fprintf(g,'\t\t\t\t</distribution>\n');
                 
                 end
@@ -462,11 +472,13 @@ for sc = 1 : length(sample_cutoff)
                 if sp==1
                     fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$LogTransform" f="@sigma.Ne"/>\n');
                 end
-                fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$LogTransform" f="@samplingProportion"/>\n');
+                fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$LogTransform" f="@sigma.Sampling"/>\n');
+                fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$NoTransform" f="@samplingProportion"/>\n');
                 fprintf(g,'\t\t</operator>\n');
 
             elseif contains(line, 'insert_logs')
                 fprintf(g,'\t\t\t<log idref="sigma.Ne"/>\n');
+                fprintf(g,'\t\t\t<log idref="sigma.Sampling"/>\n');
 
                 fprintf(g,'\t\t\t<log idref="logReproductiveNumber"/>\n');
                 fprintf(g,'\t\t\t<log idref="samplingProportion"/>\n');
