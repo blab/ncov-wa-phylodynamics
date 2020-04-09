@@ -3,18 +3,20 @@ threshold = 5;
 
 % exclude WA1 
 exlude = {'USA/WA1/2020'};
-sample_cutoff = {'2020-03-10', '2020-03-17', '2020-03-24'};
+sample_cutoff = {'2020-03-10', '2020-03-24'};
 
-end_date = '2020-01-10';
+end_date = '2020-01-25';
 
-s = fopen('../config/mrsi.tsv', 'w');
-cls = fopen('../config/cluster_size.tsv', 'w');
+s = fopen('../results/mrsi.tsv', 'w');
+cls = fopen('../results/cluster_size.tsv', 'w');
+st = fopen('../results/sampling_times.tsv', 'w');
 
 fprintf(s,'filename\tmrsi\n');
 fprintf(cls,'filename\tnumber\tsize\n');
+fprintf(st,'Date\tnumber\n');
 
 for sc = 1 : length(sample_cutoff)
-    rate_shifts = [3/366:3/366:(datenum(sample_cutoff(sc))-datenum(end_date))/366];
+    rate_shifts = [14/366:14/366:(datenum(sample_cutoff(sc))-datenum(end_date))/366 0.5];
     
     date_cutoff = datenum(sample_cutoff{sc});
     % read in iq tree from nextstrain pipeline
@@ -24,15 +26,25 @@ for sc = 1 : length(sample_cutoff)
     line = strsplit(fgets(f), '\t');
     div_id = find(ismember(line,'division'));
     date_id = find(ismember(line,'date'));
+    originating_id = find(ismember(line,'originating_lab'));
+    submitting_id = find(ismember(line,'submitting_lab'));
+    location_id = find(ismember(line,'location'));
     c=1;
     id = cell(0,0);
     division = cell(0,0);
+    lab = cell(0,0);
+    sub = cell(0,0);
+    location = cell(0,0);
     date = cell(0,0);
     date_val = zeros(0,0);
     while ~feof(f)
         line = strsplit(fgets(f), '\t');
         id{c,1} = line{1};
         date{c,1} = line{date_id};
+        lab{c,1} = line{originating_id};
+        sub{c,1} = line{submitting_id};
+        location{c,1} = line{location_id};
+
         if ~isempty(find(ismember(id{c,1}, exlude)))
             division{c,1} = 'NA';
         elseif ~contains(line{date_id}, 'X') && sum(date{c,1}=='-')==2 && datenum(date{c,1})<=date_cutoff
@@ -44,6 +56,13 @@ for sc = 1 : length(sample_cutoff)
         c=c+1;
     end
     fclose(f);
+    
+    % only use from lab
+    division(~ismember(lab,'UW Virology Lab')...
+        & ~ismember(sub,'UW Virology Lab')...
+        & ~ismember(location,'King County')...
+         & ~ismember(location,'Snohomish County')) = {'NA'};
+    
     % get all leafnames
     leafs = get(tree, 'leafnames');
     % get all WA samples
@@ -54,6 +73,7 @@ for sc = 1 : length(sample_cutoff)
             is_wa_leaf(i) = true;
         end
     end
+    
     wa_leafs = leafs(is_wa_leaf);
     % get the pairwise genetic distance between all samples (times the 
     % approximate number of nucleotides in the virus
@@ -95,6 +115,8 @@ for sc = 1 : length(sample_cutoff)
     %% get the sampling times of each cluster
     sampling_times = cell(length(wa_clusters),1);
     max_sampling_times = zeros(length(wa_clusters),1);
+    all_sampling = zeros(0,0);
+
     for a = 1 : length(sampling_times)
         sampling_times{a} = zeros(0,0);
         seqs = strsplit(wa_clusters{a}, ',');
@@ -102,10 +124,21 @@ for sc = 1 : length(sample_cutoff)
             % find the sequence index
             ind = find(ismember(id, seqs{b}));
             sampling_times{a}(b) = date_val(ind);
+            all_sampling(end+1,1) =  date_val(ind);
         end
         max_sampling_times(a) = max(sampling_times{a});
 
     end
+    disp(length(all_sampling))
+    
+    if sc==length(sample_cutoff)
+        uni_sampling = unique(all_sampling);
+        for us = 1 : length(uni_sampling)
+            fprintf(st, '%s\t%d\n', datestr(uni_sampling(us), 'yyyy-mm-dd'), sum(all_sampling==uni_sampling(us)));
+        end
+    end
+    
+    
 
     %% build the mutlti coal xml
     method = {'skygrid', 'independent', 'skygrowth'};
@@ -514,4 +547,4 @@ for sc = 1 : length(sample_cutoff)
     
 
 end
-fclose('all')
+fclose('all');

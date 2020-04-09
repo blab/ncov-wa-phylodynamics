@@ -1,9 +1,9 @@
 % function [] = getLTT()
-tree_files = dir('../out/multicoal_skygrid_3*.trees');
+tree_files = dir('../out/multicoal_skygrid_2*.trees');
 
 max_day = 70;
 
-skip_nr = 100;
+skip_nr = 10;
 
 clear treeDat;
 

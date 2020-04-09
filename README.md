@@ -1,23 +1,56 @@
-# Outbreak in Washington State caused mainly by two seperate introduction
+# Outbreak in Washington State driven by repeated introductions and rapid early growth
+
+<sup>1</sup>Vaccine and Infectious Disease Division, Fred Hutchinson Cancer Research Center, Seattle, WA, USA
+
 
 ## Results
 
-### Outbreak in Washington State caused by repeated introductions and an early rapid growth
+### Outbreak in Washington State caused by repeated introductions
 
-SARS-CoV-2 was repeatedly introduced into Washington State. The outbreak can be separated into two groups that lead to the majority of cases and originated from at least two different introductions into Washington State. The first one was likely introduced at the beginning of February from China. The second one is derived from Europe and was most likely introduced between mid and the end of February. To date, these two local outbreak cluster make up the vast majority of cases in Washington State. Additionally, we see evidence for several additional introductions of lineages into Washington State that are derived from lineages that previously circulated in Europe, as well as from some, were the origin of the lineage is more uncertain.  These lineages were most likely introduced from areas were sampling and sequencing is sparse, which could include other areas of the United States.
+SARS-CoV-2 was repeatedly introduced into Washington State.
+The outbreak can be separated into two groups that lead to the majority of cases and originated from at least two different introductions into Washington State.
+The first one was likely introduced at the beginning of February from China.
+The second one is derived from Europe and was most likely introduced between mid and the end of February.
 
-When estimating the effective reproduction number through time, we see that the outbreak grew rapidly between mid and end of February. During this time, it was unknown that SARS-CoV-2 was spreading in the USA. The Re then dropped to about 2.5 by the end of February, which is consistent with previously reported values for reproduction numbers in other places.
+To date, these two local outbreak cluster make up the vast majority of cases in Washington State.
+Additionally, we see evidence for several additional introductions of lineages into Washington State that are derived from lineages that previously circulated in Europe, as well as from some, were the origin of the lineage is more uncertain.
+These lineages were most likely introduced from areas were sampling and sequencing is sparse, which could include other areas of the United States.
 
-On the XXth of March, local spread of SARS-CoV-2 was first reported in the Washington State area and the number of confirmed new cases began to flatten soon after. On the XXth of March, several businesses started to institute home office and on the XXth of March, a stay at home order was issued from the Governor.
+![ltt](figures/coal_ltt.png)
+
+
+### Rapid early growth of COVID-19 cases
+
+Due to a lack of testing, it was for a long time unclear whether there was local transmission in the USA in general, as well as in Washington State.
+After local transmission was shown on March the 5th, COVID-19 cases from Washington State were sequenced.
+These genetic sequence data allow us to reconstruct transmission dynamics even before large scale testing for COVID-19 began.
+
+To do so, we use two approaches, a birth-death skyline approach where we treat each separate introduction as independent observation of the same local population dynamics.
+Additionally, we use a coalescent skyline approach, where we model the coalescence of lineages in WA and the introduction of lineages into WA as structure coalescent process with known migration histories.
+The migration histories are given by the initial clustering of sequences into groups of local outbreak clusters.
+
+When estimating the effective reproduction number through time, we see that the outbreak grew rapidly between mid and end of February. During this time, it was unknown that SARS-CoV-2 was spreading in the USA.
+The Re then dropped to about 2.5 by the end of February, which is consistent with previously reported values for reproduction numbers in other places.
+
+On the XXth of March, local spread of SARS-CoV-2 was first reported in the Washington State area and the number of confirmed new cases began to flatten soon after.
+On the XXth of March, several businesses started to institute home office and on the XXth of March, a stay at home order was issued from the Governor.
+
+![R0](figures/R0.png)
+
 
 ### Testing of cases accurately reflects trends in new cases.
 
-We next estimated the population dynamics of SARS-CoV-2 in WA from genetic sequence data using a coalescent approach, which conditions on sampling. This means that the information about the population dynamics come from the branching patterns and not how many sequences there are through time.
+While there is intensive testing for COVID-19 in Washington State since the beginning of March, sampling as a percentage of overall cases remains sparse.
+As we reconstruct the population dynamics from genetic sequence data, we use information from how individual cases are related genetically to reconstruct population dynamics.
+Using the coalescent approach described above, this allows us to reconstruct the population dynamics of the spread of COVID-19 while conditioning on the sampling.
+This means that we do not directly use the number of samples through time to inform these population dynamics.
+This, in turn, allows us to test whether there are undetected transmission dynamics that are not captured by the number of positive samples through time.
+
+Additionally, we used a birth death model to estimate the effective reproduction number and sampling proportions through time.
+The effe
 
 
-Additionally, we used a birth death model to estimate the transmission dynamics
-
-
+![growth](figures/coal_growth.png)
 
 
 
@@ -25,7 +58,8 @@ Additionally, we used a birth death model to estimate the transmission dynamics
 
 ### Introductions into Washington State
 
-In order to distinguish between sequences that are connected by local transmission, we cluster all sequences from Washington State together based
+In order to distinguish between sequences that are connected by local transmission, we cluster all sequences from Washington State together based on their pairwise genetic distance.
+To do so, we
 
 We then classify each introduction as either being derived from China or from Europe. To do so, we use the nextstrain pipeline to
 

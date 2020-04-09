@@ -1,3 +1,4 @@
 # Ignore everything in this directory
 .DS_Store
 xmls/
+*.pdf
