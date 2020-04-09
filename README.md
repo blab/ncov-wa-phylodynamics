@@ -65,9 +65,14 @@ This, in turn, allows us to test whether there are undetected transmission dynam
 Additionally, we used a birth death model to estimate the effective reproduction number and sampling proportions through time.
 The effe
 
-
-![growth](figures/coal_growth.png)
-
+<figure>
+	<a id="fig:R0"></a>
+	<img style="width:90%;" src="figures/coal_growth.png" alt="">
+	<figcaption>Figure 3: Comparison between growth rate estimates using the coalescent skyline and testing data.
+  Here we compare the growth rates (on the y-axis) of the Washington State outbreak to the growth rates calculated from the number of positive tests from UW Virology.
+  The growth rate estimates from UW Virology are shifted by 9 days to reflect the time delay between the time of infection and the occurrence of symptoms.
+  </figcaption>
+</figure>
 
 
 ## Methods and Materials
