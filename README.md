@@ -16,7 +16,14 @@ To date, these two local outbreak cluster make up the vast majority of cases in 
 Additionally, we see evidence for several additional introductions of lineages into Washington State that are derived from lineages that previously circulated in Europe, as well as from some, were the origin of the lineage is more uncertain.
 These lineages were most likely introduced from areas were sampling and sequencing is sparse, which could include other areas of the United States.
 
-![ltt](figures/coal_ltt.png)
+<figure>
+	<a id="fig:ltt"></a>
+	<img style="width:90%;" src="figures/coal_ltt.png" alt="">
+	<figcaption>Figure 1: Lineage through time plot of different local outbreak clusters that have more than one sampled sequence.
+  The plot show the inferred lineages through time for different local outbreak clusters.
+  The different lineage through time plots are colored by their likely source of introduction outside the USA.
+  </figcaption>
+</figure>
 
 
 ### Rapid early growth of COVID-19 cases
@@ -32,10 +39,19 @@ The migration histories are given by the initial clustering of sequences into gr
 When estimating the effective reproduction number through time, we see that the outbreak grew rapidly between mid and end of February. During this time, it was unknown that SARS-CoV-2 was spreading in the USA.
 The Re then dropped to about 2.5 by the end of February, which is consistent with previously reported values for reproduction numbers in other places.
 
-On the XXth of March, local spread of SARS-CoV-2 was first reported in the Washington State area and the number of confirmed new cases began to flatten soon after.
-On the XXth of March, several businesses started to institute home office and on the XXth of March, a stay at home order was issued from the Governor.
+On the 13th of March, local spread of SARS-CoV-2 was first reported in the Washington State area and the number of confirmed new cases began to flatten soon after.
+On the 23th of March, several businesses started to institute home office and on the XXth of March, a stay at home order was issued from the Governor.
 
-![R0](figures/R0.png)
+
+<figure>
+	<a id="fig:R0"></a>
+	<img style="width:90%;" src="figures/R0.png" alt="">
+	<figcaption>Figure 2: Effective reproduction number of of SARS-CoV-2 in Washington State.
+  The effective reproduction number (on the y-axis) is estimated for intervals of 2 weeks using two different approaches.
+  The coalescent skyline and birth death skyline both estimate a very high reproduction rate between mid and end of February and a drastic slow down in March.
+  The three different lines show when local transmission was first reported in WA, when initial lock downs began and when the stay at home order was issued.
+  </figcaption>
+</figure>
 
 
 ### Testing of cases accurately reflects trends in new cases.
