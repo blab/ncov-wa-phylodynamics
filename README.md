@@ -73,7 +73,7 @@ After testing was started late and the initial growth phased was missed, the num
 </figure>
 
 We find that daily growth rate in new cases computed from the number of daily positive test to the growth rate estimates from the coalescent skyline approach agree well.
-As mentioned above, the PCR testing captured the last part of the rapid initial rapid growth phase.
+As mentioned above, the PCR testing captured the last part of the rapid initial rapid growth phase and agrees well after that with the phylodynamic estimates.
 
 
 
