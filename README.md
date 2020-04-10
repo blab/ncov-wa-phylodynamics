@@ -62,13 +62,25 @@ Using the coalescent approach described above, this allows us to reconstruct the
 This means that we do not directly use the number of samples through time to inform these population dynamics.
 This, in turn, allows us to test whether there are undetected transmission dynamics that are not captured by the number of positive samples through time.
 
-Additionally, we used a birth death model to estimate the effective reproduction number and sampling proportions through time.
-The effe
+When comparing the estimated effective population sizes to the number of positive tests shifted by 9 days, we find that the trends between them agree.
+After testing was started late and the initial growth phased was missed, the number of new positive tests starts to follow the same trend as the estimated effective population sizes.
+
+<figure>
+	<a id="fig:R0"></a>
+	<img style="width:90%;" src="figures/coal_skygrid_testing.png" alt="">
+	<figcaption>Figure 3: Comparison between effective population sizes and number of positive tests by UW Virology.
+  </figcaption>
+</figure>
+
+We find that daily growth rate in new cases computed from the number of daily positive test to the growth rate estimates from the coalescent skyline approach agree well.
+As mentioned above, the PCR testing captured the last part of the rapid initial rapid growth phase.
+
+
 
 <figure>
 	<a id="fig:R0"></a>
 	<img style="width:90%;" src="figures/coal_growth.png" alt="">
-	<figcaption>Figure 3: Comparison between growth rate estimates using the coalescent skyline and testing data.
+	<figcaption>Figure 4: Comparison between growth rate estimates using the coalescent skyline and testing data.
   Here we compare the growth rates (on the y-axis) of the Washington State outbreak to the growth rates calculated from the number of positive tests from UW Virology.
   The growth rate estimates from UW Virology are shifted by 9 days to reflect the time delay between the time of infection and the occurrence of symptoms.
   </figcaption>
