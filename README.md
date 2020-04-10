@@ -8,7 +8,7 @@
 ### Outbreak in Washington State caused by repeated introductions
 
 SARS-CoV-2 was repeatedly introduced into Washington State.
-The outbreak can be separated into two groups that lead to the majority of cases and originated from at least two different introductions into Washington State.
+The outbreak can be separated into two groups that lead to the majority of cases and the majority of cases originated from at least two different introductions into Washington State.
 The first one was likely introduced at the beginning of February from China.
 The second one is derived from Europe and was most likely introduced between mid and the end of February.
 
@@ -56,7 +56,8 @@ On the 23th of March, several businesses started to institute home office and on
 
 ### Testing of cases accurately reflects trends in new cases.
 
-While there is intensive testing for COVID-19 in Washington State since the beginning of March, sampling as a percentage of overall cases remains sparse.
+While there is intensive testing for COVID-19 in Washington State since the beginning of March, sampling as a percentage of overall cases likely remained low.
+We here want to test whether there are significant transmission dynamics that are not captured in the number of positive tests through time.
 As we reconstruct the population dynamics from genetic sequence data, we use information from how individual cases are related genetically to reconstruct population dynamics.
 Using the coalescent approach described above, this allows us to reconstruct the population dynamics of the spread of COVID-19 while conditioning on the sampling.
 This means that we do not directly use the number of samples through time to inform these population dynamics.
