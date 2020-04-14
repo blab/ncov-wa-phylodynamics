@@ -43,7 +43,7 @@ becoming_uninf = 36.5
 generation_time = 1/becoming_uninf
 
 # reporting delay of cases after infection https://science.sciencemag.org/content/early/2020/03/24/science.abb3221
-reporting_delay = 9
+reporting_delay = 0
 ```
 
 # Get the sampling counts from UW Virology
@@ -200,14 +200,21 @@ for (i in seq(1,length(mrsi$filename))){
       
       hpdInt = HPDinterval(as.mcmc(t[,name]))
       hpdInt.samp = HPDinterval(as.mcmc(t[,name2]))
+      hpdInt.growth = HPDinterval(as.mcmc((exp(t[,name])-1)*becoming_uninf))
+      hpdInt.growth.5 = HPDinterval(as.mcmc((exp(t[,name])-1)*becoming_uninf),prob=0.5)
       
       new.dat = data.frame(time=mrsi[i,"date"]-time[j], 
                            Ne.mean=median(t[,name]), Ne.lower=hpdInt[1,'lower'], Ne.upper=hpdInt[1,'upper'], 
                            samp.mean=median(t[,name2]), samp.lower=hpdInt.samp[1,'lower'], samp.upper=hpdInt.samp[1,'upper'], 
+                           growth.lower=hpdInt.growth[1,'lower'], growth.upper=hpdInt.growth[1,'upper'], 
+                           growth.ll=hpdInt.growth.5[1,'lower'], growth.uu=hpdInt.growth.5[1,'upper'], 
+                           
                            method = method, timeframe=timeframe)
       new.dat = rbind(new.dat, data.frame(time=mrsi[i,"date"]-time[j]-14+0.001, 
                        Ne.mean=median(t[,name]), Ne.lower=hpdInt[1,'lower'], Ne.upper=hpdInt[1,'upper'], 
                        samp.mean=median(t[,name2]), samp.lower=hpdInt.samp[1,'lower'], samp.upper=hpdInt.samp[1,'upper'], 
+                       growth.lower=hpdInt.growth[1,'lower'], growth.upper=hpdInt.growth[1,'upper'], 
+                       growth.ll=hpdInt.growth.5[1,'lower'], growth.uu=hpdInt.growth.5[1,'upper'], 
                        method = method, timeframe=timeframe))
 
       if (first){
@@ -223,13 +230,6 @@ for (i in seq(1,length(mrsi$filename))){
 
 ```
 
-
-# Skygrid analysis
-
-
-```{r skyline}
-
-```
 
 # comparison between number of samples and the effective population sizes.
 
@@ -247,9 +247,9 @@ p = ggplot(dat[which(dat$method=="correlated Ne's" & dat$timeframe=="samples unt
   scale_fill_manual(name="data source", values=c("#56B4E9"))+
   theme_minimal() +
   theme(legend.position = "none")  +
-    scale_y_continuous(sec.axis = sec_axis(~ 1/transform*., name = "effective population size")) +
-
-  coord_cartesian(ylim=c(0.01,400))
+  scale_y_continuous(name="number of positive tests", sec.axis = sec_axis(~ 1/transform*., name = "effective population size")) +
+  coord_cartesian(ylim=c(0.01,400)) +
+  xlab("")
   
 plot(p)
 
@@ -384,17 +384,21 @@ ggsave(plot=p_coal_growth_supp, file=paste(path, 'figures/coal_growth_supp.pdf',
 
 
 p_coal_growth = ggplot(growth[which(growth$method=="correlated Ne's" & growth$timeframe=="samples until 2020-03-24"),]) + 
-  # geom_line(aes(x=time, y=growth.mean, color="genetic data")) +
   geom_ribbon(aes(x=time, ymin=growth.lower, ymax=growth.upper), fill="#56B4E9", alpha=0.2) +
-  geom_ribbon(aes(x=time, ymin=growth.ll, ymax=growth.uu), fill="#56B4E9", alpha=0.4) +
+  geom_ribbon(aes(x=time, ymin=growth.ll, ymax=growth.uu), fill="#56B4E9", alpha=0.8) +
+  
+  geom_ribbon(data=dat.bdsky, aes(x=time, ymin=growth.lower, ymax=growth.upper), fill="#F0E442", alpha=0.2) +
+  geom_ribbon(data=dat.bdsky, aes(x=time, ymin=growth.ll, ymax=growth.uu), fill="#F0E442", alpha=0.8) +
+
+  
   geom_path(data=growth.testing, aes(x=time-reporting_delay, y=growth, color="confirmed positive tests")) +
   scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
   coord_cartesian(ylim=c(-100,300))+
   scale_color_manual(name="data source", values=c("#D55E00", "#56B4E9"))+
   xlab("")+
   theme_minimal()
-doubling_labels = c(-1,-2,-6,6,2,1)
-p_coal_growth <- p_coal_growth + scale_y_continuous(sec.axis = sec_axis(~ .,breaks=round(log(2)/doubling_labels*365), labels=doubling_labels, name = "doubling times in days")) + ylab("growth rate per year")
+# doubling_labels = c(-1,-2,-6,6,2,1)
+# p_coal_growth <- p_coal_growth + scale_y_continuous(sec.axis = sec_axis(~ .,breaks=round(log(2)/doubling_labels*365), labels=doubling_labels, name = "doubling times in days")) + ylab("growth rate per year")
 
 plot(p_coal_growth)
 ggsave(plot=p_coal_growth, file=paste(path, 'figures/coal_growth.png', sep='/'), height=3,width=9)

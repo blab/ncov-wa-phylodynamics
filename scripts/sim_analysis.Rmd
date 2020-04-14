@@ -43,63 +43,75 @@ becoming_uninf = 36.5
 generation_time = 1/becoming_uninf
 
 # reporting delay of cases after infection https://science.sciencemag.org/content/early/2020/03/24/science.abb3221
-reporting_delay = 9
+reporting_delay = 0
 ```
 
 # plot simulated SEIR dynamics
+
 ```{r seir_sims}
 library(rjson)
-df <- fromJSON(file=paste(path, "simulations/BD_S1_master.json", sep="/"))
-inf = data.frame(time=df$t, I=df$I, E=df$E, s=df$R)
+first.p = T
+first.g = T
+start_val=2
+for (rep in seq(0,8)){
+  df <- fromJSON(file=paste(path, "/simulations/eir_", rep, ".json", sep=""))
+  inf = data.frame(time=df$t, I=df$I, E=df$E, s=df$R)
+  
+  intro_times = data.frame(t=df$t[which(diff(df$samp)==1)])
+  # p=ggplot() +
+  #   geom_line(data=inf, aes(x=time,y=I+E))+
+  #   scale_y_log10()+
+  #   geom_histogram(data=intro_times, aes(x=t), binwidth=1/366) +
+  #   theme_minimal()
+  # plot(p)
 
-intro_times = data.frame(t=df$t[which(diff(df$samp)==1)])
-
-
-ggplot() +
-  geom_line(data=inf, aes(x=time,y=I+E))+
-  scale_y_log10()+
-  geom_histogram(data=intro_times, aes(x=t), binwidth=1/366) +
-  theme_minimal()
-
-# convert times into dates
-intro_times$date = as.Date("2020-02-10") + floor(intro_times$t*366)
-uni_dates = unique(intro_times$date)
-for (i in seq(1,length(uni_dates))){
-  new.positive = data.frame(date=uni_dates[[i]], count=sum(intro_times$date==uni_dates[[i]]), detection="Positive")
-  if (i==1){
-    positive = new.positive
-  }else{
-    positive = rbind(positive, new.positive)
+  # convert times into dates
+  intro_times$date = as.Date("2020-02-10") + floor(intro_times$t*366)
+  uni_dates = unique(intro_times$date)
+  for (i in seq(1,length(uni_dates))){
+    new.positive = data.frame(date=uni_dates[[i]], count=sum(intro_times$date==uni_dates[[i]]), detection="Positive", timeframe=rep)
+    if (first.p){
+      positive = new.positive
+      first.p=F
+    }else{
+      positive = rbind(positive, new.positive)
+    }
   }
-}
-
-
-# compute the growth rates from testing
-average_over = 7
-for (i in seq(2,length(positive$date)-average_over, 1)){
-  growt_val = 0
-  for (j in seq(1,average_over)){
-    growt_val = growt_val + log(positive[i+j,"count"]/positive[i+j-1,"count"])/(1/366)
+  
+  
+  # compute the growth rates from testing
+  average_over = 7
+  for (i in seq(start_val,length(positive$date)-average_over, 1)){
+    growt_val = 0
+    for (j in seq(1,average_over)){
+      growt_val = growt_val + log(positive[i+j,"count"]/positive[i+j-1,"count"])/(1/366)
+    }
+    growt_val = growt_val/average_over
+    new.dat = data.frame(time=positive[i,"date"], growth=growt_val, timeframe=rep)
+    new.dat = rbind(new.dat,data.frame(time=positive[i,"date"]+1-0.001, growth=growt_val, timeframe=rep))
+    if (first.g){
+      growth.testing = new.dat
+      first.g = F
+    }else{
+      growth.testing = rbind(growth.testing, new.dat)
+    }
   }
-  growt_val = growt_val/average_over
-  new.dat = data.frame(time=positive[i,"date"], growth=growt_val)
-  new.dat = rbind(new.dat,data.frame(time=positive[i,"date"]+1-0.001, growth=growt_val))
-  if (i==2){
-    growth.testing = new.dat
-  }else{
-    growth.testing = rbind(growth.testing, new.dat)
-  }
-}
-
-
+  start_val = length(positive$date)+2
+  
+}  
 ```
 
 
 # Get the sampling counts from UW Virology
 
 ```{r smapling}
-mrsi = data.frame(filename="simmulticoal_skygrid_2",date=as.Date("2020-03-24"))
-mrsi = rbind(mrsi, data.frame(filename="simmultibd_skygrid_2",date=as.Date("2020-03-24")))
+mrsi = data.frame(filename="simmulticoal_skygrowth_0",date=as.Date("2020-03-24"))
+mrsi = rbind(mrsi, data.frame(filename="simmultibd_skygrid_0",date=as.Date("2020-03-24")))
+
+for (rep in seq(1,8)){
+  mrsi = rbind(mrsi, data.frame(filename=paste("simmulticoal_skygrowth_", rep,sep=""),date=as.Date("2020-03-24")))
+  mrsi = rbind(mrsi, data.frame(filename=paste("simmultibd_skygrid_", rep,sep=""),date=as.Date("2020-03-24")))
+}
 
 first = T
 first.growth = T
@@ -116,7 +128,7 @@ for (i in seq(1,length(mrsi$filename))){
     # read in all the Ne's
     for (j in seq(1,length(time))){
       method = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[2]]
-      timeframe = timeframename[as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])]
+      timeframe = as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])
       name = paste('Ne',j,sep="")
       hpdInt = HPDinterval(exp(as.mcmc(t[,name])))
       hpdInt.m = HPDinterval(exp(as.mcmc(t[,name])), prob=0.5)
@@ -137,7 +149,7 @@ for (i in seq(1,length(mrsi$filename))){
     average_over = 1
     for (j in seq(1,length(time)-average_over,1)){
       method = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[2]]
-      timeframe = timeframename[as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])]
+      timeframe = as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])
       
       name1 = paste('Ne',j,sep="")
       name2 = paste('Ne',j+average_over,sep="")
@@ -198,7 +210,7 @@ for (i in seq(1,length(mrsi$filename))){
     # read in all the Ne's
     for (j in seq(1,length(time))){
       method = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[2]]
-      timeframe = timeframename[as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])]
+      timeframe = as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])
       name = paste('logReproductiveNumber',length(time)-j+1,sep="")
       name2 = paste('samplingProportion',length(time)-j+1,sep="")
       
@@ -228,31 +240,6 @@ for (i in seq(1,length(mrsi$filename))){
 ```
 
 
-# Skygrid analysis
-
-
-```{r skyline}
-
-```
-
-
-
-```{r skyline_other}
-p = ggplot(dat) + geom_line(aes(x=time, y=Ne.mean, color=timeframe)) +
-  geom_ribbon(aes(x=time, ymin=Ne.lower, ymax=Ne.upper, fill=timeframe), alpha=0.2)+
-  facet_wrap(method~., ncol=1) +
-  scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
-  scale_color_OkabeIto()+
-  scale_fill_OkabeIto()+
-  scale_y_continuous(breaks=seq(-6.9078,6.9078,2.3026), labels=c(0.001,0.010,0.1,1,10,100,1000),sec.axis = sec_axis(~ .,breaks=seq(-6.9078,6.9078,2.3026), labels=c(0.001,0.010,0.1,1,10,100,1000), name = "Ne")) +
-  theme_minimal() +
-  theme(legend.position = "none") + 
-  coord_cartesian(ylim=c(-6.9078,6.9078))
-plot(p)
-
-ggsave(plot=p, file=paste(path, 'figures/skygrid.pdf', sep='/'), height=5,width=9)
-
-```
 
 
 ```{r growth_rates}
@@ -274,7 +261,7 @@ p_coal_growth_supp <- p_coal_growth_supp + scale_y_continuous(sec.axis = sec_axi
 
 
 
-p_coal_growth = ggplot(growth[which(growth$method=="correlated Ne's" & growth$timeframe=="samples until 2020-03-24"),]) + 
+p_coal_growth = ggplot(growth) + 
   # geom_line(aes(x=time, y=growth.mean, color="genetic data")) +
   geom_ribbon(aes(x=time, ymin=growth.lower, ymax=growth.upper), fill="#56B4E9", alpha=0.2) +
   geom_ribbon(aes(x=time, ymin=growth.ll, ymax=growth.uu), fill="#56B4E9", alpha=0.4) +
@@ -283,7 +270,9 @@ p_coal_growth = ggplot(growth[which(growth$method=="correlated Ne's" & growth$ti
   coord_cartesian(ylim=c(-100,300))+
   scale_color_manual(name="data source", values=c("#D55E00", "#56B4E9"))+
   xlab("")+
-  theme_minimal()
+  theme_minimal() +
+  facet_wrap(.~timeframe, ncol=3)
+
 doubling_labels = c(-1,-2,-6,6,2,1)
 p_coal_growth <- p_coal_growth + scale_y_continuous(sec.axis = sec_axis(~ .,breaks=round(log(2)/doubling_labels*365), labels=doubling_labels, name = "doubling times in days")) + ylab("growth rate per year")
 
@@ -295,11 +284,11 @@ plot(p_coal_growth)
 
 ```{r R0}
 
-p_R0 = ggplot(growth[which(growth$method=="correlated Ne's" & growth$timeframe=="samples until 2020-03-24"),]) + 
+p_R0 = ggplot(growth[which(growth$method=="correlated Ne's"),]) + 
   geom_path(aes(x=time, y=R.mean, color="coalesent skyline")) +
   geom_ribbon(aes(x=time, ymin=R.lower, ymax=R.upper, fill="coalesent skyline"), alpha=0.2) +
-  geom_line(data=dat.bdsky[which(dat.bdsky$timeframe=="samples until 2020-03-24"),],aes(x=time, y=exp(Ne.mean), color="birth-death skyline")) +
-  geom_ribbon(data=dat.bdsky[which(dat.bdsky$timeframe=="samples until 2020-03-24"),], aes(x=time, ymin=exp(Ne.lower), ymax=exp(Ne.upper), fill="birth-death skyline"), alpha=0.2)+
+  geom_line(data=dat.bdsky,aes(x=time, y=exp(Ne.mean), color="birth-death skyline")) +
+  geom_ribbon(data=dat.bdsky, aes(x=time, ymin=exp(Ne.lower), ymax=exp(Ne.upper), fill="birth-death skyline"), alpha=0.2)+
   ylab("Effective Reproduction Number")+
   scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
   coord_cartesian(ylim=c(0,7.5))+
@@ -308,7 +297,8 @@ p_R0 = ggplot(growth[which(growth$method=="correlated Ne's" & growth$timeframe==
   geom_vline(xintercept=as.Date('2020-03-23'))+
   scale_color_manual(name="method", values=c("#F0E442", "#56B4E9"))+
   scale_fill_manual(name="method", values=c("#F0E442", "#56B4E9"))+
-  theme_minimal()
+  theme_minimal() +
+  facet_wrap(.~timeframe, ncol=3)
 plot(p_R0)
 
 # ggsave(plot=p_R0, file=paste(path, 'figures/R0.png', sep='/'), height=3,width=9)
@@ -317,36 +307,32 @@ plot(p_R0)
 ```
 
 ```{r sampling_proportions}
+positive$seqs=0
+for (rep in seq(0,8)){
+  # read in the sampling times
+  st = read.table(file=paste(path, "/simulations/eir_", rep, ".tsv", sep=""), sep="\t", header = F)
+  dates = as.Date(st$V2)
+  
+  ind = which(positive$timeframe==rep)
+  for (i in seq(1,length(ind))){
+    positive[ind[i],"seqs"] = sum(dates==positive[ind[i],"date"])
+  }
+}
 
-p_R0_bdsky = 
-  ggplot(dat.bdsky[which(dat.bdsky$timeframe=="samples until 2020-03-24"),]) + 
-  geom_line(aes(x=time, y=exp(Ne.mean), color=timeframe)) +
-  geom_ribbon(aes(x=time, ymin=exp(Ne.lower), ymax=exp(Ne.upper), fill=timeframe), alpha=0.2)+
-  scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
-  geom_vline(xintercept=as.Date('2020-03-05'))+
-  geom_vline(xintercept=as.Date('2020-03-13'))+
-  geom_vline(xintercept=as.Date('2020-03-23'))+
-  scale_color_manual(name="data source", values=c("#D55E00", "#56B4E9"))+
+p = ggplot(dat.bdsky) +
+  geom_line(aes(x=time, y=exp(samp.mean))) +
+  geom_ribbon(aes(x=time, ymin=exp(samp.lower), ymax=exp(samp.upper)), alpha=0.2)+
+  geom_line(data = positive, aes(x=date, y=seqs/count*0.2))+
+  # scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
+  # scale_color_OkabeIto()+
+  # scale_fill_OkabeIto()+
   facet_wrap(timeframe~., ncol=1)+
   theme_minimal() +
-  theme(legend.position = "none")
-  coord_cartesian(ylim=c(0,7.5))
-plot(p_R0_bdsky)
+  coord_cartesian(ylim=c(0,0.5)) +
+  facet_wrap(.~timeframe, ncol=3)
 
-ggsave(plot=p, file=paste(path, 'figures/bdsky_skygrid.pdf', sep='/'), height=5,width=9)
-
-p = ggplot(dat.bdsky) + geom_line(aes(x=time, y=exp(samp.mean), color=timeframe)) +
-  geom_ribbon(aes(x=time, ymin=exp(samp.lower), ymax=exp(samp.upper), fill=timeframe), alpha=0.2)+
-  scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
-  geom_vline(xintercept=as.Date('2020-03-05'))+
-  geom_vline(xintercept=as.Date('2020-03-13'))+
-  geom_vline(xintercept=as.Date('2020-03-23'))+
-  scale_color_OkabeIto()+
-  scale_fill_OkabeIto()+
-  facet_wrap(timeframe~., ncol=1)+
-  theme_minimal() +
-  coord_cartesian(ylim=c(0,1))
 plot(p)
+
 
 ggsave(plot=p, file=paste(path, 'figures/bdsky_sampling.pdf', sep='/'), height=5,width=9)
 
