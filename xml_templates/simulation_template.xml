@@ -1,0 +1,69 @@
+<beast version='2.0' namespace='master:master.model:master.steppers:master.conditions:master.postprocessors:master.outputs'>
+    <run spec='InheritanceTrajectory'
+        verbosity='2' samplePopulationSizes="true" simulationTime="0.117">
+
+        <model spec='Model'>
+            <population spec='Population' id='E' populationName='E'/>
+            <population spec='Population' id='Iinit' populationName='Iinit'/>
+            <population spec='Population' id='I' populationName='I'/>
+            <population spec='Population' id='R' populationName='R'/>
+            <population spec='Population' id='samp' populationName='samp'/>
+            <population spec='Population' id='samp2' populationName='samp2'/>
+
+            <reactionGroup spec='ReactionGroup' reactionGroupName='Infection'>
+              <reaction spec='Reaction' rate="100000000">
+                Iinit:1 -> 2E:1
+              </reaction>
+            </reactionGroup>
+
+            insert_transmission
+
+          <reactionGroup spec='ReactionGroup' reactionGroupName='Exposed'>
+           <reaction spec='Reaction' rate="36.5">
+             E:1 -> I:1
+           </reaction>
+         </reactionGroup>
+
+         <reactionGroup spec='ReactionGroup' reactionGroupName='Recovery'>
+          <reaction spec='Reaction' rate="58">
+            I -> R
+          </reaction>
+          </reactionGroup>
+
+
+          <reactionGroup spec='ReactionGroup' reactionGroupName='Sampling'>
+           <reaction spec='Reaction' rate="14">
+             I -> samp
+           </reaction>
+         </reactionGroup>
+
+
+
+
+
+          <!-- <reactionGroup spec='ReactionGroup' reactionGroupName='Sampling'>
+           <reaction spec='Reaction' rate="91.2500">
+             I -> sample
+           </reaction>
+         </reactionGroup> -->
+        </model>
+
+        <initialState spec='InitState'>
+          <lineageSeed spec='Individual' population="@Iinit"/>
+        </initialState>
+
+        <lineageEndCondition spec='LineageEndCondition' nLineages="0"/>
+        <inheritancePostProcessor spec='LineageFilter' reactionName="Sampling"/>
+        <inheritancePostProcessor spec='LineageSampler' nSamples="400"/>
+
+        <postSimCondition spec='LeafCountPostSimCondition'
+                  nLeaves="300"
+                  exact="false"
+                  exceedCondition="true"/>
+
+
+        <output spec='JsonOutput' fileName='../simulations/$(filebase).json'/>
+        <output spec='NewickOutput' fileName='../simulations/$(filebase).tree' collapseSingleChildNodes="true"/>
+        <output spec='NexusOutput' fileName='../simulations/$(filebase).nexus' collapseSingleChildNodes="true"/>
+    </run>
+</beast>

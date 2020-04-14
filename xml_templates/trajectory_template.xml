@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beast namespace="beast.core
+                  :beast.core.parameter
+                  :beast.evolution.tree
+                  :feast.expressions
+                  :feast.fileio.logfileiterator" version="2.0">
+
+  <run spec="LogFileIterator">
+    <logFileState spec="TraceLogFileState" logFileName="multibd_skygrid_2.log">
+
+
+      <logFileEntry spec="LogFileRealParameter" fieldName="logReproductiveNumber1" fieldParameterIndex="5">
+        <fieldParameter id="Re" spec="RealParameter" dimension="6" value="0.0"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="logReproductiveNumber2" fieldParameterIndex="4">
+        <fieldParameter idref="Re"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="logReproductiveNumber3" fieldParameterIndex="3">
+        <fieldParameter idref="Re"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="logReproductiveNumber4" fieldParameterIndex="2">
+        <fieldParameter idref="Re"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="logReproductiveNumber5" fieldParameterIndex="1">
+        <fieldParameter idref="Re"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="logReproductiveNumber6" fieldParameterIndex="0">
+        <fieldParameter idref="Re"/>
+      </logFileEntry>
+
+
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportion5" fieldParameterIndex="0">
+        <fieldParameter id="sampProp" spec="RealParameter" dimension="1" value="-2"/>
+      </logFileEntry>
+      <!-- <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportion6" fieldParameterIndex="0">
+        <fieldParameter idref="sampProp"/>
+      </logFileEntry> -->
+
+
+      <logFileEntry spec="LogFileRealParameter" fieldName="rootLength:lc_9">
+        <fieldParameter id="origin_val" spec="RealParameter"  dimension="1"  value="0.5"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="Tree.9.height">
+        <fieldParameter id="treeheight" spec="RealParameter"  dimension="1"  value="0.0"/>
+      </logFileEntry>
+
+    </logFileState>
+
+
+    <logFileState spec="TreeLogFileState" logFileName="multibd_skygrid_2.lc_9.trees">
+      <tree spec="beast.evolution.tree.Tree" id="tree"/>
+    </logFileState>
+
+    <logger spec="Logger"
+            logEvery="10000">
+      <log idref="Re"/>
+      <log idref="sampProp"/>
+      <log id="treestat" spec="TreeStatLogger" tree="@tree"/>
+    </logger>
+
+    <logger spec="Logger"
+            fileName="BD_epi.traj"
+            logEvery="10000">
+      <log spec="epiinf.TrajectoryLogger"
+           logMostRecentTrajectory="true">
+        <treeDensity id="treePrior" spec="epiinf.distribs.SMCTreeDensity"
+                     tree="@tree"
+                     nParticles="1000"
+                     useTauLeaping="true">
+
+          <model spec="epiinf.models.BirthDeathModel"
+                 infectionRateShiftTimesBackward="true"
+                 psiSamplingVariableShiftTimesBackward="true"
+                 rhoSamplingTimesBackward="true"
+                 usePsiSamplingProportion="true">
+
+            <infectionRate spec="ExpCalculator"
+                           value="36*exp(Re)">
+              <arg idref="Re"/>
+            </infectionRate>
+
+            <psiSamplingVariable spec="ExpCalculator"
+                           value="exp(sampProp)">
+              <arg idref="sampProp"/>
+            </psiSamplingVariable>
+
+
+            <infectionRateShiftTimes spec="ExpCalculator"
+                                     value="{0.0383,0.0765,0.1148,0.1530,0.5}">
+            </infectionRateShiftTimes>
+
+            <!-- <recoveryRateShiftTimes spec="ExpCalculator"
+                                     value="{0.0383,0.0765,0.1148,0.1530,0.5000}">
+            </recoveryRateShiftTimes> -->
+
+
+
+
+            <origin id="lala" spec="ExpCalculator"
+                           value="(treeheight)+(origin_val)">
+              <arg idref="treeheight"/>
+              <arg idref="origin_val"/>
+            </origin>
+
+
+            <recoveryRate spec="ExpCalculator"
+                           value="36*(1-exp(sampProp))">
+              <arg idref="sampProp"/>
+            </recoveryRate>
+
+            <removalProb spec="parameter.RealParameter" value="1.0" estimate="false"/>
+            <rhoSamplingProb spec="parameter.RealParameter" value="0.0" estimate="false"/>
+            <rhoSamplingTime spec="parameter.RealParameter" value="0.0" estimate="false"/>
+          </model>
+
+          <finalTreeSampleOffset spec="parameter.RealParameter" value="0.0" estimate="false"/>
+        </treeDensity>
+      </log>
+    </logger>
+  </run>
+</beast>
