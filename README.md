@@ -87,6 +87,25 @@ As mentioned above, the PCR testing captured the last part of the rapid initial 
   </figcaption>
 </figure>
 
+
+## Methods and Materials
+
+### Introductions into Washington State
+
+In order to distinguish between sequences that are connected by local transmission, we cluster all sequences from Washington State together based on their pairwise genetic distance.
+To do so, we
+
+We then classify each introduction as either being derived from China or from Europe. To do so, we use the nextstrain pipeline to
+
+### Estimating population dynamics jointly from multiple local outbreak clusters
+
+In order to estimate the population dynamics of the Washington State outbreak, we use a coalescent approach to infer these dynamics jointly from all known local outbreak clusters. To do so, we model the coalescence and migration of lineages within Washington State as structured coalescent process with known migration history. The know migration history here is given by the clustering of sequences into local outbreak clusters. The migration events from anywhere outside WA into WA are always assumed to have happened before the common ancestor of all sequences in each local outbreak cluster. How long before this common ancestor time is inferred during the MCMC.
+
+We then infer the effective population size and rates of introductions through time using a skyline type approach. Effective population sizes and rates of introduction are allowed to change at predefined time points. Between these predefined time points where the rates are estimated, the rates are interpolated. This is equivalent to assuming exponential growth or decline between the effective population sizes at theses time points.
+
+In contrast to backwards in time coalescent approaches, we can consider different local outbreak clusters as independent observations of the same underlying population process using birth death models.
+
+
 ### Effect of heterogeneous offspring distributions on parameter estimates
 
 In order to be able to perform phylodynamic inferences, we used fairly simple models, we therefore next tested if we are able to infer changes in the population dynamics nonetheless.
@@ -104,20 +123,9 @@ We find that the most of the time, both approaches are reliably able to infer ch
 The coalescent skyline approach, however, can be subject to strong biases, while the birth-death approach seems to be largely unaffected.
 
 
-
-## Methods and Materials
-
-### Introductions into Washington State
-
-In order to distinguish between sequences that are connected by local transmission, we cluster all sequences from Washington State together based on their pairwise genetic distance.
-To do so, we
-
-We then classify each introduction as either being derived from China or from Europe. To do so, we use the nextstrain pipeline to
-
-### Estimating population dynamics jointly from multiple local outbreak clusters
-
-In order to estimate the population dynamics of the Washington State outbreak, we use a coalescent approach to infer these dynamics jointly from all known local outbreak clusters. To do so, we model the coalescence and migration of lineages within Washington State as structured coalescent process with known migration history. The know migration history here is given by the clustering of sequences into local outbreak clusters. The migration events from anywhere outside WA into WA are always assumed to have happened before the common ancestor of all sequences in each local outbreak cluster. How long before this common ancestor time is inferred during the MCMC.
-
-We then infer the effective population size and rates of introductions through time using a skyline type approach. Effective population sizes and rates of introduction are allowed to change at predefined time points. Between these predefined time points where the rates are estimated, the rates are interpolated. This is equivalent to assuming exponential growth or decline between the effective population sizes at theses time points.
-
-In contrast to backwards in time coalescent approaches, we can consider different local outbreak clusters as independent observations of the same underlying population process.
+<figure>
+	<a id="fig:R0"></a>
+	<img style="width:90%;" src="figures/sims_growth.png" alt="">
+	<figcaption>Figure 4: Comparison between growth rate estimates using the birth-death and coalescent skyline and testing data from simulated data.
+  </figcaption>
+</figure>
