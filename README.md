@@ -38,10 +38,23 @@ As shown in the figure below, we estimate the percentage of new cases to be belo
 <figure>
 	<a id="fig:perc_intro"></a>
 	<img style="width:90%;" src="figures/sample_percentage.png" alt="">
-	<figcaption>Figure 2: Percentage of new cases due to introductions.
+	<figcaption>Figure 2: Estimated percentage of new cases due to introductions.
   </figcaption>
 </figure>
 
+We next test how likely adding more samples is to reveal new introductions into Washington State.
+The less likey this is, the less important introductions are to driving the outbreak.
+We test this by randomly subsampling the overall dataset and counting the number of introductions after.
+We repeat this for different amount of samples and then compute how probable one new sample is to reveal a new introduction.
+We find that the sequencing most likely caught all larger outbreak as of March 24th.
+
+
+<figure>
+	<a id="fig:perc_intro"></a>
+	<img style="width:90%;" src="figures/sample_intros.png" alt="">
+	<figcaption>Figure 3: Probability of catching new introductions with additional samples.
+  </figcaption>
+</figure>
 
 
 ### Rapid early growth of COVID-19 cases
