@@ -25,6 +25,24 @@ These lineages were most likely introduced from areas were sampling and sequenci
   </figcaption>
 </figure>
 
+### Introductions caused but did not drive the outbreak
+
+While introductions certainly caused the outbreak in Washington State, it is unclear how important they where to driving it.
+To test this, we estimate the relative contribution of introduction compared to local transmission.
+As described in the Methods and Materials part, the coalescent skyline estimate from multiple local outbreak clusters allows us to estimate the rate of introduction.
+We the assume that we can approximate the local transmission rate by using the change in effective population sizes over time.
+We then compute the ratio of introductions over local transmissions as the ratio of the introduction rate over the transmission rate.
+The resulting estimates include a large amount of assumptions and should be interpreted as such, but can nevertheless give us an idea of how important introductions overall are.
+As shown in the figure below, we estimate the percentage of new cases to be below 10 after the initial introductions and most likely to be around 1%.
+
+<figure>
+	<a id="fig:perc_intro"></a>
+	<img style="width:90%;" src="figures/sample_percentage.png" alt="">
+	<figcaption>Figure 2: Percentage of new cases due to introductions.
+  </figcaption>
+</figure>
+
+
 
 ### Rapid early growth of COVID-19 cases
 
