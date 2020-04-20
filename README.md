@@ -55,8 +55,7 @@ This does two fold.
 First, it gives us a more event distribution of samples through time.
 Second, it puts lower weights on days where we have a lot of samples.
 These are also samples that are more prone to epidemiological linkage.
-
-
+The different number of samples are to see if more samples, and therefore potentially more linked samples, change the results
 
 ## Results
 
@@ -203,5 +202,20 @@ The coalescent skyline approach, however, can be subject to strong biases, while
 	<a id="fig:R0"></a>
 	<img style="width:90%;" src="figures/sims_growth.png" alt="">
 	<figcaption>Figure 4: Comparison between growth rate estimates using the birth-death and coalescent skyline and testing data from simulated data.
+  </figcaption>
+</figure>
+
+
+## Supplementary Material
+
+### Comparison of inferred rates when using different amounts of additional samples
+
+As mentioned above, we considered all samples for UW Virology to be random samples from the population.
+We also added samples from WADoH and from the Seattle Flu Study, once adding 50 and once 150 samples.
+
+<figure>
+	<a id="fig:trajectory_coal"></a>
+	<img style="width:90%;" src="figures/figures/coal_smoothingcomp.png" alt="">
+	<figcaption>Figure S1: Comparison between growth rate estimates using the birth-death and coalescent skyline and testing data from simulated data.
   </figcaption>
 </figure>
