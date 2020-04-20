@@ -223,3 +223,13 @@ Every analysis infers a rapid growth until the beginning of March and then a fla
 	<figcaption>Figure S1: Comparison between effective population size estimate for different datasets and smoothing priors.
   </figcaption>
 </figure>
+
+We performed the same for the birth-death skyline analysis.
+The 
+
+<figure>
+	<a id="fig:trajectory_coal"></a>
+	<img style="width:90%;" src="figures/bdsky_smoothingcomp.png" alt="">
+	<figcaption>Figure S2: Comparison between the effective reproduction number estimates for different datasets.
+  </figcaption>
+</figure>
