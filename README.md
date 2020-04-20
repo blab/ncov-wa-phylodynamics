@@ -36,8 +36,25 @@ As for the coalescent approach, we assume adjacent effective reproduction number
 We further assume the becoming un-infectious rate to be 36.5 per year which corresponds to an average time of infectivity of 10 days.
 Further, we assume that the probability of an individual to be sampled and sequenced upon recovery to be the same throughout the sampled period.
 
-###
+### Sampling of epidemiologically unlinked cases
 
+Phylodynamic approaches typically assume that all the available sequences are representative of the underlying population.
+In other words, this means that they assume that all samples were taken at random.
+We have sequences from different laboratories using different testing criteria in Washington State.
+First, we have sequences from test performed by UW Virology, which are sequences typically isolated from sick patients.
+We assume that the samples from UW Virology were indeed sampled at random and therefore include all of those in the analysis.
+Additionally, we have sequences from the Washington Department of Health (WADoH) and the Seattle Flu Study.
+A large amount of samples from WADoH are sampled at the same time and cluster together and therefore might not be unlinked.
+Samples from the Seattle Flu Study are more evenly distributed across the tree.
+We, however, see a lot of sequences sampled on the same day clustering together and can not directly assume they are unlinked as well.
+
+In order to still include at least some of those cases while still having an at least somewhat unbiased way of including them, we performed two separate sub-sampling procedures.
+We once add 50 and once 150 samples from the Seattle Flu Study and WADoH to the samples from UW Virology.
+To do so, we randomly chose 50 (or 150) samples from this pool using the inverse number of samples from the same day as the probability of choosing a sample.
+This does two fold.
+First, it gives us a more event distribution of samples through time.
+Second, it puts lower weights on days where we have a lot of samples.
+These are also samples that are more prone to epidemiological linkage.
 
 
 
@@ -85,6 +102,7 @@ As shown in the figure below, we estimate the percentage of new cases to be belo
 	<figcaption>Figure 2: Estimated percentage of new cases due to introductions.
   </figcaption>
 </figure>
+
 
 We next test how likely adding more samples is to reveal new introductions into Washington State.
 The less likey this is, the less important introductions are to driving the outbreak.
