@@ -31,7 +31,12 @@ Second, we use an approach where we assume that the differences the growth rates
 This is equivalent to using an exponential coalescent model with time varying growth rates.
 
 In contrast to backwards in time coalescent approaches, we can consider different local outbreak clusters as independent observations of the same underlying population process using birth death models.
+We infer the effective reproduction number using the birth-death skyline model by assuming the different local outbreak clusters are independent observations of the same process with the same parameters.
+As for the coalescent approach, we assume adjacent effective reproduction numbers to be normally distributed in log space with mean 0 and an estimated sigma.
+We further assume the becoming un-infectious rate to be 36.5 per year which corresponds to an average time of infectivity of 10 days.
+Further, we assume that the probability of an individual to be sampled and sequenced upon recovery to be the same throughout the sampled period.
 
+###
 
 
 
@@ -64,8 +69,13 @@ These lineages were most likely introduced from areas were sampling and sequenci
 While introductions certainly caused the outbreak in Washington State, it is unclear how important they where to driving it.
 To test this, we estimate the relative contribution of introduction compared to local transmission.
 As described in the Methods and Materials part, the coalescent skyline estimate from multiple local outbreak clusters allows us to estimate the rate of introduction.
-We the assume that we can approximate the local transmission rate by using the change in effective population sizes over time.
-We then compute the ratio of introductions over local transmissions as the ratio of the introduction rate over the transmission rate.
+The rate of introduction $$i$$ can be described as $$\frac{I_{outside} m^{f}}{I_{WA}}$$.
+This means that the number of introductions per unit of time can be expressed as $$i * I_{WA} = I_{outside} m^{f}$$
+We then assume that we can approximate the local transmission rate $$\theta$$ by using the change in effective population sizes over time.
+The number of novel infections per unit of time can then be described as %%\theta * I_{WA}$$.
+We then compute the ratio of introductions over local transmissions as the ratio of the introduction rate over the transmission rate $$\frac{i * I_{WA}}{\theta * I_{WA}} = \frac{i}{\theta}$$.
+
+
 The resulting estimates include a large amount of assumptions and should be interpreted as such, but can nevertheless give us an idea of how important introductions overall are.
 As shown in the figure below, we estimate the percentage of new cases to be below 10 after the initial introductions and most likely to be around 1%.
 
