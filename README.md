@@ -3,16 +3,50 @@
 <sup>1</sup>Vaccine and Infectious Disease Division, Fred Hutchinson Cancer Research Center, Seattle, WA, USA
 
 
+## Methods and Materials
+
+### Introductions into Washington State
+
+In order to distinguish between sequences that are connected by local transmission, we cluster all sequences from Washington State together based on their pairwise genetic distance.
+To do so, we first built a phylogenetic tree based solely on the pairwise genetic distances using the sequences from Washington State using the nextstrain pipeline.
+We then consider samples as connected if their pairwise genetic distance is less than 5 mutations apart.
+Next, we group all sequences together that are connected via the above threshold.
+
+### Estimating population dynamics jointly from multiple local outbreak clusters
+
+In order to estimate the population dynamics of the Washington State outbreak, we use a coalescent approach to infer these dynamics jointly from all known local outbreak clusters.
+To do so, we model the coalescence and migration of lineages within Washington State as structured coalescent process with known migration history.
+The known migration history here is given by the clustering of sequences into local outbreak clusters.
+The migration events from anywhere outside WA into WA are always assumed to have happened before the common ancestor of all sequences in each local outbreak cluster.
+How long before this common ancestor time is inferred during the MCMC.
+
+We then infer the effective population size and rates of introductions through time using a skyline type approach.
+Effective population sizes and rates of introduction are allowed to change at predefined time points.
+Between these predefined time points where the rates are estimated, the rates are interpolated.
+This is equivalent to assuming exponential growth or decline between the effective population sizes at theses time points.
+
+We then use two different ways to account for correlations between adjacent effective population sizes (N<sub>e</sub>).
+First, we use the classic skyride approach where we assume that the logarithm of adjacent N<sub>e</sub> is normally distributed with mean 0 and an estimated sigma.
+Second, we use an approach where we assume that the differences the growth rates are normally distributed with mean 0 and an estimated sigma.
+This is equivalent to using an exponential coalescent model with time varying growth rates.
+
+In contrast to backwards in time coalescent approaches, we can consider different local outbreak clusters as independent observations of the same underlying population process using birth death models.
+
+
+
+
+
 ## Results
 
 ### Outbreak in Washington State caused by repeated introductions
 
-SARS-CoV-2 was repeatedly introduced into Washington State.
-The outbreak can be separated into two groups that lead to the majority of cases and the majority of cases originated from at least two different introductions into Washington State.
-The first one was likely introduced at the beginning of February from China.
-The second one is derived from Europe and was most likely introduced between mid and the end of February.
+SARS-CoV-2 was introduced repeatedly into Washington State from different parts of the world.
+The outbreak can be separated into two larger groups that make up the majority of cases and the majority of cases originated from at least two different introductions into Washington State.
+The first one was likely introduced around the beginning of February either directly from China or via unknown intermediate locations.
+The second one is derived from lineages from Europe and was most likely introduced between mid and the end of February.
+As for the introduction from China, it is very much possible that these were not direct introduction an intermediate locations were involved.
 
-To date, these two local outbreak cluster make up the vast majority of cases in Washington State.
+To date, and as shown in the figure below, these two local outbreak cluster make up the vast majority of cases in Washington State.
 Additionally, we see evidence for several additional introductions of lineages into Washington State that are derived from lineages that previously circulated in Europe, as well as from some, were the origin of the lineage is more uncertain.
 These lineages were most likely introduced from areas were sampling and sequencing is sparse, which could include other areas of the United States.
 
@@ -77,7 +111,7 @@ On the 23th of March, several businesses started to institute home office and on
 <figure>
 	<a id="fig:R0"></a>
 	<img style="width:90%;" src="figures/R0.png" alt="">
-	<figcaption>Figure 2: Effective reproduction number of of SARS-CoV-2 in Washington State.
+	<figcaption>Figure 4: Effective reproduction number of of SARS-CoV-2 in Washington State.
   The effective reproduction number (on the y-axis) is estimated for intervals of 2 weeks using two different approaches.
   The coalescent skyline and birth death skyline both estimate a very high reproduction rate between mid and end of February and a drastic slow down in March.
   The three different lines show when local transmission was first reported in WA, when initial lock downs began and when the stay at home order was issued.
@@ -100,7 +134,7 @@ After testing was started late and the initial growth phased was missed, the num
 <figure>
 	<a id="fig:R0"></a>
 	<img style="width:90%;" src="figures/coal_skygrid_testing.png" alt="">
-	<figcaption>Figure 3: Comparison between effective population sizes and number of positive tests by UW Virology.
+	<figcaption>Figure 5: Comparison between effective population sizes and number of positive tests by UW Virology.
   </figcaption>
 </figure>
 
@@ -108,33 +142,16 @@ We find that daily growth rate in new cases computed from the number of daily po
 As mentioned above, the PCR testing captured the last part of the rapid initial rapid growth phase and agrees well after that with the phylodynamic estimates.
 
 
-
 <figure>
 	<a id="fig:R0"></a>
 	<img style="width:90%;" src="figures/coal_growth.png" alt="">
-	<figcaption>Figure 4: Comparison between growth rate estimates using the coalescent skyline and testing data.
+	<figcaption>Figure 6: Comparison between growth rate estimates using the coalescent skyline and testing data.
   Here we compare the growth rates (on the y-axis) of the Washington State outbreak to the growth rates calculated from the number of positive tests from UW Virology.
   The growth rate estimates from UW Virology are shifted by 9 days to reflect the time delay between the time of infection and the occurrence of symptoms.
   </figcaption>
 </figure>
 
 
-## Methods and Materials
-
-### Introductions into Washington State
-
-In order to distinguish between sequences that are connected by local transmission, we cluster all sequences from Washington State together based on their pairwise genetic distance.
-To do so, we
-
-We then classify each introduction as either being derived from China or from Europe. To do so, we use the nextstrain pipeline to
-
-### Estimating population dynamics jointly from multiple local outbreak clusters
-
-In order to estimate the population dynamics of the Washington State outbreak, we use a coalescent approach to infer these dynamics jointly from all known local outbreak clusters. To do so, we model the coalescence and migration of lineages within Washington State as structured coalescent process with known migration history. The know migration history here is given by the clustering of sequences into local outbreak clusters. The migration events from anywhere outside WA into WA are always assumed to have happened before the common ancestor of all sequences in each local outbreak cluster. How long before this common ancestor time is inferred during the MCMC.
-
-We then infer the effective population size and rates of introductions through time using a skyline type approach. Effective population sizes and rates of introduction are allowed to change at predefined time points. Between these predefined time points where the rates are estimated, the rates are interpolated. This is equivalent to assuming exponential growth or decline between the effective population sizes at theses time points.
-
-In contrast to backwards in time coalescent approaches, we can consider different local outbreak clusters as independent observations of the same underlying population process using birth death models.
 
 
 ### Effect of heterogeneous offspring distributions on parameter estimates
