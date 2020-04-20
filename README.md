@@ -215,7 +215,7 @@ We also added samples from WADoH and from the Seattle Flu Study, once adding 50 
 
 <figure>
 	<a id="fig:trajectory_coal"></a>
-	<img style="width:90%;" src="figures/figures/coal_smoothingcomp.png" alt="">
+	<img style="width:90%;" src="figures/coal_smoothingcomp.png" alt="">
 	<figcaption>Figure S1: Comparison between growth rate estimates using the birth-death and coalescent skyline and testing data from simulated data.
   </figcaption>
 </figure>
