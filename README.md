@@ -212,10 +212,14 @@ The coalescent skyline approach, however, can be subject to strong biases, while
 
 As mentioned above, we considered all samples for UW Virology to be random samples from the population.
 We also added samples from WADoH and from the Seattle Flu Study, once adding 50 and once 150 samples.
+We here compare how the inference of effective population sizes depend on using more or less samples from these two sources.
+As shown in the figure below, adding more samples leads to a reduction in the inferred effective population size around March 15th, with otherwise similar results.
+Every analysis infers a rapid growth until the beginning of March and then a flattening of the trend.
+
 
 <figure>
 	<a id="fig:trajectory_coal"></a>
 	<img style="width:90%;" src="figures/coal_smoothingcomp.png" alt="">
-	<figcaption>Figure S1: Comparison between growth rate estimates using the birth-death and coalescent skyline and testing data from simulated data.
+	<figcaption>Figure S1: Comparison between effective population size estimate for different datasets and smoothing priors.
   </figcaption>
 </figure>
