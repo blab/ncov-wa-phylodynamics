@@ -6,7 +6,7 @@
                   :feast.fileio.logfileiterator" version="2.0">
 
   <run spec="LogFileIterator">
-    <logFileState spec="TraceLogFileState" logFileName="multibd_skygrid_2.log">
+    <logFileState spec="TraceLogFileState" logFileName="../out/multibd_skygrid_2.log">
 
 
       <logFileEntry spec="LogFileRealParameter" fieldName="logReproductiveNumber1" fieldParameterIndex="5">
@@ -37,17 +37,17 @@
       </logFileEntry> -->
 
 
-      <logFileEntry spec="LogFileRealParameter" fieldName="rootLength:lc_9">
+      <logFileEntry spec="LogFileRealParameter" fieldName="rootLength:lc_insert_c">
         <fieldParameter id="origin_val" spec="RealParameter"  dimension="1"  value="0.5"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="Tree.9.height">
+      <logFileEntry spec="LogFileRealParameter" fieldName="Tree.insert_c.height">
         <fieldParameter id="treeheight" spec="RealParameter"  dimension="1"  value="0.0"/>
       </logFileEntry>
 
     </logFileState>
 
 
-    <logFileState spec="TreeLogFileState" logFileName="multibd_skygrid_2.lc_9.trees">
+    <logFileState spec="TreeLogFileState" logFileName="../out/multibd_skygrid_2.lc_insert_c.trees">
       <tree spec="beast.evolution.tree.Tree" id="tree"/>
     </logFileState>
 

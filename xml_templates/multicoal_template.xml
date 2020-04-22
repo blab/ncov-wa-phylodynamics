@@ -28,7 +28,7 @@ insert_data
 <run id="mcmc" spec="MCMC" chainLength="250000000">
     <state id="state" spec="State" storeEvery="5000">
         insert_tree
-        <parameter id="clock" spec="parameter.RealParameter" name="stateNode">0.0008</parameter>
+        <parameter id="clock" spec="parameter.RealParameter" name="stateNode">0.0011</parameter>
         <parameter id="kappa" spec="parameter.RealParameter" lower="0.0" name="stateNode">6.5</parameter>
         <parameter id="gamma" spec="parameter.RealParameter" name="stateNode">0.05</parameter>
         <parameter id="freqs" spec="parameter.RealParameter" dimension="4" lower="0.0" name="stateNode" upper="1.0">0.25</parameter>

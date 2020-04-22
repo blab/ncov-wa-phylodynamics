@@ -1,6 +1,6 @@
 <beast version='2.0' namespace='master:master.model:master.steppers:master.conditions:master.postprocessors:master.outputs'>
     <run spec='InheritanceTrajectory'
-        verbosity='2' samplePopulationSizes="true" simulationTime="0.117">
+        verbosity='2' samplePopulationSizes="true" simulationTime="0.1530">
 
         <model spec='Model'>
             <population spec='Population' id='E' populationName='E'/>
@@ -19,20 +19,20 @@
             insert_transmission
 
           <reactionGroup spec='ReactionGroup' reactionGroupName='Exposed'>
-           <reaction spec='Reaction' rate="36.5">
+           <reaction spec='Reaction' rate="73.2000">
              E:1 -> I:1
            </reaction>
          </reactionGroup>
 
          <reactionGroup spec='ReactionGroup' reactionGroupName='Recovery'>
-          <reaction spec='Reaction' rate="58">
+          <reaction spec='Reaction' rate="58.5600">
             I -> R
           </reaction>
           </reactionGroup>
 
 
           <reactionGroup spec='ReactionGroup' reactionGroupName='Sampling'>
-           <reaction spec='Reaction' rate="14">
+           <reaction spec='Reaction' rate="14.6400">
              I -> samp
            </reaction>
          </reactionGroup>
@@ -54,10 +54,10 @@
 
         <lineageEndCondition spec='LineageEndCondition' nLineages="0"/>
         <inheritancePostProcessor spec='LineageFilter' reactionName="Sampling"/>
-        <inheritancePostProcessor spec='LineageSampler' nSamples="400"/>
+        <inheritancePostProcessor spec='LineageSampler' nSamples="500"/>
 
         <postSimCondition spec='LeafCountPostSimCondition'
-                  nLeaves="300"
+                  nLeaves="500"
                   exact="false"
                   exceedCondition="true"/>
 
