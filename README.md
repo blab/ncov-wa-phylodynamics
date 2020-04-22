@@ -21,6 +21,7 @@ We here first split the outbreak in Washington State into sets of sequences that
 We then use these local outbreak cluster to infer the population dynamics of the Washington State outbreak jointly from all local outbreak clusters.
 
 This allows us to first estimate the relative contribution of introductions compared to local transmissions, showing that while introduction causes the outbreak, the overall impact introductions have in driving the outbreak is low.
+
 We then show that although testing PCR started late, it largely captured the dynamics of the outbreak.
 
 ## Methods and Materials
@@ -129,6 +130,12 @@ We test this by randomly subsampling the overall dataset and counting the number
 We repeat this for different amount of samples and then compute how probable one new sample is to reveal a new introduction.
 We find that the sequencing most likely caught all larger outbreak as of March 24th.
 
+Additionally, we simulate what the same analysis would reveal when we perform simulations using different percentages of introductions from overall transmission events.
+To do so, we simulate a sequence of cluster memberships, given that introductions are responsible for 10%, 1% or 0.1% of cases.
+We do so by starting with one infected individual, we then randomly sample whether the next individual is from a new introduction or from a local transmission.
+If it is from a local transmission, we randomly choose a previous infected individual and assign the same cluster membership to the newly infected individual.
+As with the observed data, we then randomly choose different amount of samples and estimate the probability that adding one sample reveals a new introduction.
+We find that the observed patterns are very similar to those expected for 1% of novel cases being due to introductions.
 
 <figure>
 	<a id="fig:perc_intro"></a>
