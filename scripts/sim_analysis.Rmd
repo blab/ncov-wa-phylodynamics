@@ -19,7 +19,7 @@ library(ggtree)
 
 path = "/Users/nmueller/Documents/github/hCoV-19_WA"
 
-end_time = as.Date('2020-01-10')
+end_time = as.Date('2020-01-25')
 # read in the mrsi file
 mrsi = read.table(paste(path,'/results/mrsi.tsv',sep="/"), sep="\t", header=T)
 
@@ -44,6 +44,12 @@ generation_time = 1/becoming_uninf
 
 # reporting delay of cases after infection https://science.sciencemag.org/content/early/2020/03/24/science.abb3221
 reporting_delay = 0
+
+# define the colors for bd and coal methods
+coal_col = "#56B4E9"
+bdsky_col = "#009E73"
+test_col = "#D55E00"
+
 ```
 
 # plot simulated SEIR dynamics
@@ -58,12 +64,23 @@ for (rep in seq(0,8)){
   inf = data.frame(time=df$t, I=df$I, E=df$E, s=df$R)
   
   intro_times = data.frame(t=df$t[which(diff(df$samp)==1)])
-  # p=ggplot() +
-  #   geom_line(data=inf, aes(x=time,y=I+E))+
-  #   scale_y_log10()+
-  #   geom_histogram(data=intro_times, aes(x=t), binwidth=1/366) +
-  #   theme_minimal()
-  # plot(p)
+  new_inf = data.frame(t=df$t[which(diff(df$E)>0)], val = diff(df$E)[which(diff(df$E)>0)])
+  new_recovered = rbind(data.frame(t=df$t[which(diff(df$R)>0)], val = diff(df$R)[which(diff(df$R)>0)]),
+                        data.frame(t=df$t[which(diff(df$samp)>0)], val = diff(df$R)[which(diff(df$samp)>0)]))
+                        
+  
+  p=ggplot() +
+    # geom_line(data=inf, aes(x=time,y=I+E))+
+    scale_y_log10()+
+    # geom_histogram(data=new_inf, aes(x=t, weight=val), binwidth=1/366, fill="green",alpha=0.5) +
+    geom_freqpoly(data=intro_times, aes(x= t*366), binwidth=1,color="black") +
+    # geom_freqpoly(data=intro_times, aes(x=t-10/366), binwidth=1/366,color=test_col) +
+    # scale_x_date()+
+    geom_vline(xintercept=0.0765)+
+    geom_vline(xintercept=0.1148)+
+   
+    theme_minimal()
+  plot(p)
 
   # convert times into dates
   intro_times$date = as.Date("2020-02-10") + floor(intro_times$t*366)
@@ -80,7 +97,7 @@ for (rep in seq(0,8)){
   
   
   # compute the growth rates from testing
-  average_over = 7
+  average_over = 14
   for (i in seq(start_val,length(positive$date)-average_over, 1)){
     growt_val = 0
     for (j in seq(1,average_over)){
@@ -118,7 +135,7 @@ first.growth = T
 first.intro = T
 for (i in seq(1,length(mrsi$filename))){
   time_diff = mrsi[i,"date"]-end_time
-  time = seq(0,as.numeric(time_diff),14)
+  time = seq(0,as.numeric(time_diff),2)
   
   if (!startsWith( as.character(mrsi[i,"filename"]),"simmultibd")){
     # read in the log file
@@ -162,20 +179,24 @@ for (i in seq(1,length(mrsi$filename))){
       hpdInt = HPDinterval(as.mcmc(values))
       hpdInt.5 = HPDinterval(as.mcmc(values), prob=0.5)
       hpdInt.doubling = HPDinterval(as.mcmc(doubling))
+      
       hpdInt.R = HPDinterval(as.mcmc(R))
- 
+      hpdInt.R.5 = HPDinterval(as.mcmc(R), prob=0.5)
+
       new.dat = data.frame(time=mrsi[i,"date"]-time[j], 
                            growth.mean=median(values), growth.lower=hpdInt[1,'lower'], growth.upper=hpdInt[1,'upper'], 
                            growth.ll=hpdInt.5[1,'lower'], growth.uu=hpdInt.5[1,'upper'], 
                            doubling.mean=median(doubling), doubling.lower=hpdInt.doubling[1,'lower'], doubling.upper=hpdInt.doubling[1,'upper'], 
-                           R.mean=median(R), R.lower=hpdInt.R[1,'lower'], R.upper=hpdInt.R[1,'upper'], 
+                           R.lower=hpdInt.R[1,'lower'], R.upper=hpdInt.R[1,'upper'], 
+                           R.ll=hpdInt.R.5[1,'lower'], R.uu=hpdInt.R.5[1,'upper'], 
                            method = method, timeframe=timeframe)
       
       new.dat = rbind(new.dat, data.frame(time=mrsi[i,"date"]-time[j+1] +0.01, 
                            growth.mean=median(values), growth.lower=hpdInt[1,'lower'], growth.upper=hpdInt[1,'upper'], 
                           growth.ll=hpdInt.5[1,'lower'], growth.uu=hpdInt.5[1,'upper'], 
                           doubling.mean=median(doubling), doubling.lower=hpdInt.doubling[1,'lower'], doubling.upper=hpdInt.doubling[1,'upper'], 
-                           R.mean=median(R), R.lower=hpdInt.R[1,'lower'], R.upper=hpdInt.R[1,'upper'], 
+                           R.lower=hpdInt.R[1,'lower'], R.upper=hpdInt.R[1,'upper'], 
+                           R.ll=hpdInt.R.5[1,'lower'], R.uu=hpdInt.R.5[1,'upper'], 
                            method = method, timeframe=timeframe))
   
       if (first.growth){
@@ -200,7 +221,7 @@ growth$method <- factor(growth$method, levels =c("correlated Ne's", "correlated 
 first = T
 for (i in seq(1,length(mrsi$filename))){
   time_diff = mrsi[i,"date"]-end_time
-  time = seq(0,as.numeric(time_diff),14)
+  time = seq(0,as.numeric(time_diff),2)
   
   if (startsWith( as.character(mrsi[i,"filename"]),"simmultibd")){
     # read in the log file
@@ -212,18 +233,27 @@ for (i in seq(1,length(mrsi$filename))){
       method = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[2]]
       timeframe = as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])
       name = paste('logReproductiveNumber',length(time)-j+1,sep="")
-      name2 = paste('samplingProportion',length(time)-j+1,sep="")
-      
-      hpdInt = HPDinterval(as.mcmc(t[,name]))
-      hpdInt.samp = HPDinterval(as.mcmc(t[,name2]))
+      # name2 = paste('samplingProportion',length(time)-j+1,sep="")
+      hpdInt = HPDinterval(exp(as.mcmc(t[,name])))
+      hpdInt.5 = HPDinterval(exp(as.mcmc(t[,name])),prob=0.5)
+      # hpdInt.samp = HPDinterval(as.mcmc(t[,name2]))
+      hpdInt.growth = HPDinterval(as.mcmc((exp(t[,name])-1)*becoming_uninf))
+      hpdInt.growth.5 = HPDinterval(as.mcmc((exp(t[,name])-1)*becoming_uninf),prob=0.5)
       
       new.dat = data.frame(time=mrsi[i,"date"]-time[j], 
                            Ne.mean=median(t[,name]), Ne.lower=hpdInt[1,'lower'], Ne.upper=hpdInt[1,'upper'], 
-                           samp.mean=median(t[,name2]), samp.lower=hpdInt.samp[1,'lower'], samp.upper=hpdInt.samp[1,'upper'], 
+                           Ne.ll=hpdInt.5[1,'lower'], Ne.uu=hpdInt.5[1,'upper'], 
+                           # samp.mean=median(t[,name2]), samp.lower=hpdInt.samp[1,'lower'], samp.upper=hpdInt.samp[1,'upper'], 
+                           growth.lower=hpdInt.growth[1,'lower'], growth.upper=hpdInt.growth[1,'upper'], 
+                           growth.ll=hpdInt.growth.5[1,'lower'], growth.uu=hpdInt.growth.5[1,'upper'], 
+                           
                            method = method, timeframe=timeframe)
-      new.dat = rbind(new.dat, data.frame(time=mrsi[i,"date"]-time[j]-14+0.001, 
+      new.dat = rbind(new.dat, data.frame(time=mrsi[i,"date"]-time[j]-2+0.001, 
                        Ne.mean=median(t[,name]), Ne.lower=hpdInt[1,'lower'], Ne.upper=hpdInt[1,'upper'], 
-                       samp.mean=median(t[,name2]), samp.lower=hpdInt.samp[1,'lower'], samp.upper=hpdInt.samp[1,'upper'], 
+                       Ne.ll=hpdInt.5[1,'lower'], Ne.uu=hpdInt.5[1,'upper'], 
+                       # samp.mean=median(t[,name2]), samp.lower=hpdInt.samp[1,'lower'], samp.upper=hpdInt.samp[1,'upper'], 
+                       growth.lower=hpdInt.growth[1,'lower'], growth.upper=hpdInt.growth[1,'upper'], 
+                       growth.ll=hpdInt.growth.5[1,'lower'], growth.uu=hpdInt.growth.5[1,'upper'], 
                        method = method, timeframe=timeframe))
 
       if (first){
@@ -259,16 +289,20 @@ p_coal_growth_supp <- p_coal_growth_supp + scale_y_continuous(sec.axis = sec_axi
 
 
 
-
-
 p_coal_growth = ggplot(growth) + 
   # geom_line(aes(x=time, y=growth.mean, color="genetic data")) +
-  geom_ribbon(aes(x=time, ymin=growth.lower, ymax=growth.upper), fill="#56B4E9", alpha=0.2) +
-  geom_ribbon(aes(x=time, ymin=growth.ll, ymax=growth.uu), fill="#56B4E9", alpha=0.4) +
-  geom_path(data=growth.testing, aes(x=time-reporting_delay, y=growth, color="confirmed positive tests")) +
+  
+  geom_ribbon(aes(x=time, ymin=growth.lower, ymax=growth.upper, fill="coalescent skyline"), alpha=0.2) +
+  geom_ribbon(aes(x=time, ymin=growth.ll, ymax=growth.uu, fill="coalescent skyline"), alpha=0.8) +
+  
+  geom_ribbon(data=dat.bdsky, aes(x=time, ymin=growth.lower, ymax=growth.upper, fill="birth-death skyline"), alpha=0.2) +
+  geom_ribbon(data=dat.bdsky, aes(x=time, ymin=growth.ll, ymax=growth.uu, fill="birth-death skyline"), alpha=0.8) +
+  geom_path(data=growth.testing, aes(x=time, y=growth, color="confirmed positive tests")) +
   scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
   coord_cartesian(ylim=c(-100,300))+
-  scale_color_manual(name="data source", values=c("#D55E00", "#56B4E9"))+
+  scale_color_manual(name="inference using:", values = c("confirmed positive tests"=test_col, "birth-death skyline"=bdsky_col, "coalescent skyline"=coal_col))+
+  scale_fill_manual(name="inference using:", values = c("confirmed positive tests"=test_col, "birth-death skyline"=bdsky_col, "coalescent skyline"=coal_col))+
+
   xlab("")+
   theme_minimal() +
   facet_wrap(.~timeframe, ncol=3)
@@ -277,31 +311,34 @@ doubling_labels = c(-1,-2,-6,6,2,1)
 p_coal_growth <- p_coal_growth + scale_y_continuous(sec.axis = sec_axis(~ .,breaks=round(log(2)/doubling_labels*365), labels=doubling_labels, name = "doubling times in days")) + ylab("growth rate per year")
 
 plot(p_coal_growth)
-# ggsave(plot=p_coal_growth, file=paste(path, 'figures/coal_growth.png', sep='/'), height=3,width=9)
+ggsave(plot=p_coal_growth, file=paste(path, 'figures/sims_growth.png', sep='/'), height=9,width=15)
 
 
 ```
 
 ```{r R0}
 
-p_R0 = ggplot(growth[which(growth$method=="correlated Ne's"),]) + 
-  geom_path(aes(x=time, y=R.mean, color="coalesent skyline")) +
+p_R0 = ggplot(growth) + 
+  # geom_path(aes(x=time, y=R.mean, color="coalesent skyline")) +
   geom_ribbon(aes(x=time, ymin=R.lower, ymax=R.upper, fill="coalesent skyline"), alpha=0.2) +
-  geom_line(data=dat.bdsky,aes(x=time, y=exp(Ne.mean), color="birth-death skyline")) +
-  geom_ribbon(data=dat.bdsky, aes(x=time, ymin=exp(Ne.lower), ymax=exp(Ne.upper), fill="birth-death skyline"), alpha=0.2)+
+  geom_ribbon(aes(x=time, ymin=R.ll, ymax=R.uu, fill="coalesent skyline"), alpha=0.2) +
+
+  geom_ribbon(data=dat.bdsky, aes(x=time, ymin=Ne.lower, ymax=Ne.upper, fill="birth-death skyline"), alpha=0.2)+
+    geom_ribbon(data=dat.bdsky, aes(x=time, ymin=Ne.ll, ymax=Ne.uu, fill="birth-death skyline"), alpha=0.8)+
+
   ylab("Effective Reproduction Number")+
   scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
   coord_cartesian(ylim=c(0,7.5))+
-  geom_vline(xintercept=as.Date('2020-03-05'))+
-  geom_vline(xintercept=as.Date('2020-03-13'))+
-  geom_vline(xintercept=as.Date('2020-03-23'))+
-  scale_color_manual(name="method", values=c("#F0E442", "#56B4E9"))+
-  scale_fill_manual(name="method", values=c("#F0E442", "#56B4E9"))+
+  # geom_vline(xintercept=as.Date('2020-03-05'))+
+  # geom_vline(xintercept=as.Date('2020-03-13'))+
+  # geom_vline(xintercept=as.Date('2020-03-23'))+
+  scale_color_manual(name="inference using:", values = c("confirmed positive tests"=test_col, "birth-death skyline"=bdsky_col, "coalescent skyline"=coal_col))+
+  scale_fill_manual(name="inference using:", values = c("confirmed positive tests"=test_col, "birth-death skyline"=bdsky_col, "coalescent skyline"=coal_col))+
   theme_minimal() +
   facet_wrap(.~timeframe, ncol=3)
 plot(p_R0)
 
-# ggsave(plot=p_R0, file=paste(path, 'figures/R0.png', sep='/'), height=3,width=9)
+ggsave(plot=p_R0, file=paste(path, 'figures/sims_R0.png', sep='/'), height=9,width=15)
 
 
 ```
@@ -320,147 +357,21 @@ for (rep in seq(0,8)){
 }
 
 p = ggplot(dat.bdsky) +
-  geom_line(aes(x=time, y=exp(samp.mean))) +
-  geom_ribbon(aes(x=time, ymin=exp(samp.lower), ymax=exp(samp.upper)), alpha=0.2)+
-  geom_line(data = positive, aes(x=date, y=seqs/count*0.2))+
-  # scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
-  # scale_color_OkabeIto()+
-  # scale_fill_OkabeIto()+
+  geom_ribbon(aes(x=time, ymin=samp.lower, ymax=samp.upper, fill="birth-death skyline"), alpha=0.2)+
+  geom_ribbon(aes(x=time, ymin=samp.ll, ymax=samp.uu, fill="birth-death skyline"), alpha=0.8)+
+  geom_line(data = positive, aes(x=date, y=seqs/count*0.2, color="confirmed positive tests"))+
+  scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
+  scale_color_manual(name="inference using:", values = c("confirmed positive tests"=test_col, "birth-death skyline"=bdsky_col, "coalescent skyline"=coal_col))+
+  scale_fill_manual(name="inference using:", values = c("confirmed positive tests"=test_col, "birth-death skyline"=bdsky_col, "coalescent skyline"=coal_col))+
   facet_wrap(timeframe~., ncol=1)+
   theme_minimal() +
-  coord_cartesian(ylim=c(0,0.5)) +
+  scale_y_log10()+
+  coord_cartesian(ylim=c(0.01,0.5)) +
   facet_wrap(.~timeframe, ncol=3)
 
 plot(p)
 
 
-ggsave(plot=p, file=paste(path, 'figures/bdsky_sampling.pdf', sep='/'), height=5,width=9)
-
-```
-
-# Compares the sampling probability to the number of sequences compared to the number of positives cases from UW Virology
-
-```{r sampling prob}
-sampling_times = read.table(paste(path,'/results/sampling_times.tsv',sep="/"), sep="\t", header=T)
-
-sampling_times$Date = as.Date(sampling_times$Date)
-uni_dates = unique(c(sampling_times$Date, positive$date))
-for (i in seq(1,length(uni_dates))){
-  ind1 = which(sampling_times$Date==uni_dates[[i]])
-  ind2 = which(positive$date==uni_dates[[i]])
-  count1=0
-  count2=0
-  if (length(ind1)==1){
-    count1=sampling_times[ind1,"number"]
-  }
-  if (length(ind2)==1){
-    count2=positive[ind2,"count"]
-  }
-  new.dat = data.frame(date=uni_dates[[i]], seq=count1,pcr=count2, ratio=count1/(count1+count2))
-  if (i==1){
-    test.comp = new.dat
-  }else{
-    test.comp = rbind(test.comp,new.dat)
-  }
-}
-
-p.test_comp = ggplot(test.comp) +
-  geom_line(aes(x=date,y=ratio)) +
-    scale_x_date(limits=c(as.Date('2020-02-15'), max(mrsi$date)))  +
-  theme_minimal() + xlab("")+
-  ylab("percentage of confirmed cases sequenced")
-
-
-plot(p.test_comp)
-
-```
-
-```{r prevalence_epiinf}
-source(paste(path, 'scripts/plot_Traj.R', sep="/"))
-plotTraj(fileNames=list(paste(path, 'out/BD_epi.traj', sep="/")),useCumulativeTrajectories=TRUE)
-
-```
-
-
-```{r prevalence_coal}
-first = T
-
-for (i in seq(1,length(mrsi$filename))){
-  time_diff = mrsi[i,"date"]-end_time
-  time = seq(0,as.numeric(time_diff),14)
-  
-  if (!startsWith( as.character(mrsi[i,"filename"]),"multibd")){
-    # read in the log file
-    t = read.table(paste(path,'/out/', mrsi[i,'filename'], '.log',sep=""), sep="\t", header=T)
-    # take a 10% burnin
-    t = t[-seq(1,length(t$posterior)/10),]
-    
-    # get all the prevalence estimates
-    average_over=1
-    for (j in seq(1,length(time)-average_over,1)){
-      method = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[2]]
-      timeframe = timeframename[as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])]
-      
-      name1 = paste('Ne',j,sep="")
-      name2 = paste('Ne',j+average_over,sep="")
-      
-      growth = (t[,name1]-t[,name2])/(time[j+average_over]-time[j])*365
-      R = 1+growth/becoming_uninf
-      # set all R smaller than 0 to 0
-      R[which(R<0.25)]=0.25
-      # get the Ne at the mid point for this time interval
-      Ne = exp(t[,name1])
-      
-      # compute the prevalence
-      I = (Ne*R*(1+1/k))/generation_time
-      
-      hpdInt = HPDinterval(as.mcmc(I))
-      hpdInt.narrow = HPDinterval(as.mcmc(I), prob=0.5)
-
-      new.dat = data.frame(time=mrsi[i,"date"] - time[j], 
-                           I.mean=median(I), I.lower=hpdInt[1,'lower'], I.upper=hpdInt[1,'upper'],
-                           I.ll=hpdInt.narrow[1,'lower'], I.uu=hpdInt.narrow[1,'upper'],
-                           method = method, timeframe=timeframe)
-       if (first){
-        prev = new.dat
-        first = F
-      }else{
-        prev = rbind(prev, new.dat)
-      }
- 
-    }
-  }
-}
-
-levels(prev$method) <- c("correlated Ne's", "uncorrelated Ne's", "correlated Ne trajectories")
-prev$method <- factor(prev$method, levels =c("correlated Ne's", "correlated Ne trajectories", "uncorrelated Ne's"))
-
-p = ggplot(prev[which(prev$method=="correlated Ne's" & prev$timeframe==timeframename[[length(timeframename)]]),])+
-  geom_ribbon(aes(x=time, ymin=I.lower, ymax=I.upper, fill=timeframe), alpha=0.2)+
-  geom_ribbon(aes(x=time, ymin=I.ll, ymax=I.uu, fill=timeframe), alpha=0.4)+
-  geom_histogram(data=testing[which(testing$detection=="Positive"),], aes(x=date-reporting_delay,y=count), sta="identity")+
-  scale_x_date(limits=c(as.Date('2020-02-01'), max(mrsi$date)))  +
-  scale_y_continuous(sec.axis = sec_axis(~ .), name = "Prevalence") +
-  theme_minimal() +
-  theme(legend.position = "none")  +
-  scale_color_manual(name="data source", values=c("#56B4E9"))+
-  scale_fill_manual(name="data source", values=c("#56B4E9"))+
-  coord_cartesian(ylim=c(1,5000))
-plot(p)
-ggsave(plot=p, file=paste(path, 'figures/coal_prevalence.png', sep='/'), height=3,width=9)
-
-
-```
-```{r seir_sims}
-library(rjson)
-df <- fromJSON(file=paste(path, "simulations/BD_S1_master.json", sep="/"))
-inf = data.frame(time=df$t, I=df$I, E=df$E, s=df$R)
-ggplot(inf, aes(x=time,y=I+E)) +
-  geom_line()+
-  scale_y_log10()
-
-ggplot(inf, aes(x=time,y=s)) +
-  geom_line()+
-  scale_y_log10()
+ggsave(plot=p, file=paste(path, 'figures/sims_samp.png', sep='/'), height=9,width=15)
 
 ```

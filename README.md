@@ -14,7 +14,7 @@ Next, we group all sequences together that are connected via the above threshold
 
 ### Estimating population dynamics jointly from multiple local outbreak clusters
 
-In order to estimate the population dynamics of the Washington State outbreak, we use a coalescent approach to infer these dynamics jointly from all known local outbreak clusters.
+To estimate the population dynamics of the Washington State outbreak, we use a coalescent approach to infer these dynamics jointly from all known local outbreak clusters.
 To do so, we model the coalescence and migration of lineages within Washington State as structured coalescent process with known migration history.
 The known migration history here is given by the clustering of sequences into local outbreak clusters.
 The migration events from anywhere outside WA into WA are always assumed to have happened before the common ancestor of all sequences in each local outbreak cluster.
@@ -128,11 +128,15 @@ To do so, we use two approaches, a birth-death skyline approach where we treat e
 Additionally, we use a coalescent skyline approach, where we model the coalescence of lineages in WA and the introduction of lineages into WA as structure coalescent process with known migration histories.
 The migration histories are given by the initial clustering of sequences into groups of local outbreak clusters.
 
-When estimating the effective reproduction number through time, we see that the outbreak grew rapidly between mid and end of February. During this time, it was unknown that SARS-CoV-2 was spreading in the USA.
-The Re then dropped to about 2.5 by the end of February, which is consistent with previously reported values for reproduction numbers in other places.
+When estimating the effective reproduction number through time, we see that the outbreak grew rapidly with and $$R_{e}$$ of around 3 between mid and end of February.
+This $$R_{e}$$ is consistent with estimates of effective reproduction numbers from other places before non-pharmaceutical interventions were taken.
+During this time, it was unknown that SARS-CoV-2 was spreading in the USA.
 
-On the 13th of March, local spread of SARS-CoV-2 was first reported in the Washington State area and the number of confirmed new cases began to flatten soon after.
-On the 23th of March, several businesses started to institute home office and on the XXth of March, a stay at home order was issued from the Governor.
+After community spread in Washington State was first reported on the 29th of February, the effective reproduction number started to drop.
+Measures by the state government were first taken on the 11th of March.
+We infer the effective reproduction number to be around 1 after than day and therefore before the "stay home stay healthy" order was taken on March 23rd.
+
+The inferred trends in effective reproduction numbers are consistent with a decrease in daily mobility of people that started at the beginning of March (https://covid.idmod.org/data/Physical_distancing_working_and_still_needed_to_prevent_COVID-19_resurgence.pdf).
 
 
 <figure>
@@ -146,10 +150,12 @@ On the 23th of March, several businesses started to institute home office and on
 </figure>
 
 
+
+
 ### Testing of cases accurately reflects trends in new cases.
 
 While there is intensive testing for COVID-19 in Washington State since the beginning of March, sampling as a percentage of overall cases likely remained low.
-We here want to test whether there are significant transmission dynamics that are not captured in the number of positive tests through time.
+We here test whether there are significant transmission dynamics that are not captured in the number of positive tests through time.
 As we reconstruct the population dynamics from genetic sequence data, we use information from how individual cases are related genetically to reconstruct population dynamics.
 Using the coalescent approach described above, this allows us to reconstruct the population dynamics of the spread of COVID-19 while conditioning on the sampling.
 This means that we do not directly use the number of samples through time to inform these population dynamics.
@@ -169,6 +175,11 @@ As mentioned above, the PCR testing captured the last part of the rapid initial 
 </figure>
 
 
+# Discussion
+
+* Introductions caused outbreak, but did not drive it -> Actions taken locally to reduce transmission are best suited to reduce burden of COVID-19.
+* Actions individuals take to reduce transmission likely go a long way to reduce transmission -> effective public health campaigns
+* Trends in testing data accurately reflect trends in transmission dynamics -> positive tests can be used base public health decisions on even if there is dramatic undersampling.
 
 
 
@@ -209,8 +220,9 @@ We assume that transmission is equally likely in the E and I compartment.
 We further assume the probability of moving from the E to I and from the I to the R compartment is exponentially distributed with mean=5 days.
 This leads to a mean time of infectivity if 10 days.
 
-We used a simulation time of 6 weeks, with the Re changing from 5 to 2 and then to 1 in windows of 2 weeks.
-During each window, we assume the number of infections each infection event causes to be distributed according to a negative binomial distribution with mean=1 and k=0.3.
+We used a simulation time of 6 weeks, with the Re first being 3 and then moving to 1.
+We allowed the Re to change every 2 days, as for the inferences.
+During each window, we assume the number of infections each infection event causes to be distributed according to a negative binomial distribution with mean=Re and variance= $$Re + \frac{R_{e}^2}{k}$$, with k=0.3.
 
 We next simulated sequences of 29000 based pair length using and HKY + Gamma model with a transition/transversion ratio of 6.4, a gamma rate of 0.05 and an average rate of evolution of 0.008 per site and year.
 We then infer the population dynamics from these sequences using the same two approaches with the same settings as described above.
