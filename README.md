@@ -3,6 +3,28 @@
 <sup>1</sup>Vaccine and Infectious Disease Division, Fred Hutchinson Cancer Research Center, Seattle, WA, USA
 
 
+## Introduction
+
+After it jumped from animals to humans likely sometime in the end of November, beginning of December in Wuhan, China, SARS-COV-2 spread around the world, dramatically impacting the lives of people.
+An initial case of COVID-19, the disease caused by SARS-CoV-2, was reported on January 19th by someone who came back from China 4 days earlier.
+After that, there were no (correct?) cases of COVID-19 reported in the greater Seattle area until the end of February, when the genetic sequence data of a virus isolated from a case was shown to be closely linked to the earlier case in January.
+The patient from whom the virus was isolate from did not have any travel history and represents the first known case of community transmission in the state.
+The exact relation to the initial introduction remains unclear and more than one introduction of similar strains could account for the observed patterns as well.
+
+After, PCR based testing of people was ramped up, showing a rapidly growing outbreak in the greater Seattle area.
+While testing of cases can give us insight into how the epidemic behaved, it is unclear if undersampling of cases, particularly in the beginning of the epidemic allows us to use this data to characterize the outbreak.
+Phylodynamics allows us to reconstruct past population dynamics from genetic sequence data.
+While birth-death approaches do take into account how many samples there are to inform population dynamics through time, coalescent approaches condition on sampling.
+This means that they allow us to reconstruct past population dynamics based on how individual cases are connected and not the how many samples there are at different points in time.
+
+
+Using genetic sequence data of viruses isolated from patients in Washington State, we reconstruct the transmission dynamics in the
+
+
+
+
+
+
 ## Methods and Materials
 
 ### Introductions into Washington State
