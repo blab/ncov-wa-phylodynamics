@@ -17,13 +17,11 @@ Phylodynamics allows us to reconstruct past population dynamics from genetic seq
 While birth-death approaches do take into account how many samples there are to inform population dynamics through time, coalescent approaches condition on sampling.
 This means that they allow us to reconstruct past population dynamics based on how individual cases are connected and not the how many samples there are at different points in time.
 
+We here first split the outbreak in Washington State into sets of sequences that are likely connected by local transmission and to which we refer to as local outbreak clusters.
+We then use these local outbreak cluster to infer the population dynamics of the Washington State outbreak jointly from all local outbreak clusters.
 
-Using genetic sequence data of viruses isolated from patients in Washington State, we reconstruct the transmission dynamics in the
-
-
-
-
-
+This allows us to first estimate the relative contribution of introductions compared to local transmissions, showing that while introduction causes the outbreak, the overall impact introductions have in driving the outbreak is low.
+We then show that although testing PCR started late, it largely captured the dynamics of the outbreak.
 
 ## Methods and Materials
 
