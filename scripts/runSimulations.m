@@ -4,7 +4,7 @@ end_date = '2020-01-25';
 
 start_tree = '2020-02-10';
 
-clock_rate = 0.0011
+clock_rate = 0.0011;
 
 k = 0.3;
 
@@ -15,6 +15,7 @@ rate_shift = datenum(start_tree, 'yyyy-mm-dd'):2:(datenum(sample_cutoff, 'yyyy-m
 rate_shift_year = (rate_shift - datenum(start_tree, 'yyyy-mm-dd'))/366;
 R0 = [repmat(3,1,9) 3:-(2/7):1 repmat(1,1,12)];
 
+ds
 eqn1 = p*r/(1-p);
 eqn2 = p*r/(1-p)^2;
 

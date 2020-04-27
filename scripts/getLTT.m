@@ -1,5 +1,5 @@
 % function [] = getLTT()
-tree_files = dir('../out/multicoal_skygrid_2*.trees');
+tree_files = dir('../out/multicoal_skygrid_2.*.trees');
 
 max_day = 70;
 
@@ -8,6 +8,7 @@ skip_nr = 10;
 clear treeDat;
 
 for i = 1 : length(tree_files)
+    disp(tree_files(i).name)
     f = fopen([tree_files(i).folder '/' tree_files(i).name]);
     trees = cell(0,0);
     c = 1;
@@ -44,7 +45,7 @@ for i = 1 : length(tree_files)
     treeDat(i).mean_vals = mean(all_vals);
 end
 
-%%
+
 % print to file
 g = fopen('../results/ltt_mean.tsv','w');
 fprintf(g, 'day')
