@@ -165,11 +165,13 @@ While there is intensive testing for COVID-19 in Washington State since the begi
 Using the coalescent, we can estimate past population dynamics while conditioning on sampling, which means that we do not directly consider the number of samples through time as informative about the population dynamics.
 
 Using a coalescent skyline approach, we test whether there are significant transmission dynamics that are not captured in the number of positive tests through time.
+As shown in the figure below, the effective population size estimates largely follow the number of cases through time when we assume a average time difference of 5 days between infection and onset of suymptoms.
+The effective population size trends for the D and G clade are, however, differ greatly.
+The effective population size estimated from the D clade peaks almost 2 weeks before the G clade.
+At that time, the effective population size of the D clade was already declining for a while.
+This is largely consistent with the trends in $$R_{e}$$ from above, estimated using the birth-death skyline model.
 
 
-
-We find that daily growth rate in new cases computed from the number of daily positive test to the growth rate estimates from the coalescent skyline approach agree well.
-As mentioned above, the PCR testing captured the last part of the rapid initial rapid growth phase and agrees well after that with the phylodynamic estimates.
 
 <figure>
 	<a id="fig:R0"></a>
@@ -181,15 +183,19 @@ As mentioned above, the PCR testing captured the last part of the rapid initial 
   </figcaption>
 </figure>
 
+We next test how well the number of cases through time describe the dynamics of SARS-CoV-2 in Washington State.
+To do so, we first computed the growth rate of the outbreak from the differences in effective population sizes over time.
+Additionally, we computed the growth rate from the estimated effective reproduction numbers in the birth-death model.
+We then computed the growth rate from the change in the number of cases by symptom onset averaged over 7 days.
 
-
+We find that the trends in growth rates are the same in all estimates.
 
 <figure>
 	<a id="fig:R0"></a>
-	<img style="width:90%;" src="figures/coal_growth.png" alt="">
-	<figcaption>Figure 6: Comparison between growth rate estimates using the coalescent skyline and testing data.
-  Here we compare the growth rates (on the y-axis) of the Washington State outbreak to the growth rates calculated from the number of positive tests from UW Virology.
-  The growth rate estimates from UW Virology are shifted by 9 days to reflect the time delay between the time of infection and the occurrence of symptoms.
+	<img style="width:90%;" src="figures/growth_rates.png" alt="">
+	<figcaption>Figure 6: Comparison between growth rate estimates using the coalescent and birth-death skyline model and testing data.
+  Here we compare the growth rates (on the y-axis) of the Washington State outbreak to the growth rates calculated from the number of positive tests by symptom onset.
+	Additionally, we shift the growth rate estimates by 5 days to reflect the average difference in time between infection and symptom onset.
   </figcaption>
 </figure>
 
