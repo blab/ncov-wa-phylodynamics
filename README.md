@@ -64,56 +64,138 @@ Second, we use an approach where we assume that the differences the growth rates
 This is equivalent to using an exponential coalescent model with time varying growth rates.
 We implemented this approach as extension to the Bayesian phylogenetics software BEAST2 ([Bouckaert et al][Bouckaert et al]).
 The code for the multi tree coalescent is available here (https://github.com/nicfel/NAB).
+We allow the effective population sizes to change every 2 days and the rates of introduction to change every 14 days.
+The inference of the effective population sizes and rates of introductions is performed using a adaptive multivaraite gaussian operator ([Baele et al][Baele et al]), implemented here https://github.com/BEAST2-Dev/BEASTLabs.
 
 In contrast to backwards in time coalescent approaches, we can consider different local outbreak clusters as independent observations of the same underlying population process using birth death models.
 We infer the effective reproduction number using the birth-death skyline model by assuming the different local outbreak clusters are independent observations of the same process with the same parameters ([Müller et al][Müller et al]).
+We allow the effective reproduction number to change evert 2 days.
 As for the coalescent approach, we assume adjacent effective reproduction numbers to be normally distributed in log space with mean 0 and an estimated sigma.
-We further assume the becoming un-infectious rate to be 36.5 per year which corresponds to an average time of infectivity of 10 days.
-Further, we assume that the probability of an individual to be sampled and sequenced upon recovery to be the same throughout the sampled period.
+We further assume the becoming un-infectious rate to be 36.5 per year which corresponds to an average time of infectivity of 10 days ([Ferretti et al][Ferretti et al]).
+We allow that the probability of an individual to be sampled and sequenced upon recovery to change every 14 days.
 
 ### Sampling of epidemiologically unlinked cases
 
-Phylodynamic approaches typically assume that all the available sequences are representative of the underlying population.
-In other words, this means that they assume that all samples were taken at random.
-We have sequences from different laboratories using different testing criteria in Washington State.
-First, we have sequences from test performed by UW Virology, which are sequences typically isolated from sick patients.
-We assume that the samples from UW Virology were indeed sampled at random and therefore include all of those in the analysis.
-Additionally, we have sequences from the Washington Department of Health (WADoH) and the Seattle Flu Study.
-A large amount of samples from WADoH are sampled at the same time and cluster together and therefore might not be unlinked.
-Samples from the Seattle Flu Study are more evenly distributed across the tree.
-We, however, see a lot of sequences sampled on the same day clustering together and can not directly assume they are unlinked as well.
-
-In order to still include at least some of those cases while still having an at least somewhat unbiased way of including them, we performed two separate sub-sampling procedures.
-We once add 50 and once 150 samples from the Seattle Flu Study and WADoH to the samples from UW Virology.
-To do so, we randomly chose 50 (or 150) samples from this pool using the inverse number of samples from the same day as the probability of choosing a sample.
-This does two fold.
-First, it gives us a more event distribution of samples through time.
-Second, it puts lower weights on days where we have a lot of samples.
-These are also samples that are more prone to epidemiological linkage.
-The different number of samples are to see if more samples, and therefore potentially more linked samples, change the results
+We analysed the population dynamics in total for 3 different datasets.
+In the first datasets, we randomly subsample 1000 of the sequences from Washington State.
+The sequences were selected at random using the inverse of the total number of samples per day as the weight.
+For the second and third dataset, we distinguish between two different clades we call D and G.
+The D clade consists of all sequences with a aspartic acid at site 614 of the spike protein.
+The G clade consists of all sequences with a glycine at this positions (see here https://nextstrain.org/ncov/global?c=gt-S_614).
+For these two datasets, we use the same subsampling procedure as for the above dataset, but with 500 sequences from each clade.
 
 ## Results
 
 ### Outbreak in Washington State caused by repeated introductions
 
+
+
 SARS-CoV-2 was introduced repeatedly into Washington State from different parts of the world.
 The outbreak can be separated into two larger groups that make up the majority of cases and the majority of cases originated from at least two different introductions into Washington State.
-The first one was likely introduced around the beginning of February either directly from China or via unknown intermediate locations.
-The second one is derived from lineages from Europe and was most likely introduced between mid and the end of February.
+Among other genetic differences between these larger outbreak clusters, the substitution of aspartate (D) at position 614 of the spike protein to a glycine (G) has been of particular interest.
+This is due to a previously suggested association with higher transmission and more severe clinical outcome ([Korber et al][Korber et al]).
+
+The two larger local outbreak cluster were introduced at different times.
+The first one was likely introduced around the beginning of February either directly from China or via unknown intermediate locations ([Bedford et al][Bedford et al]) and is part of the D clade.
+
+The second one is derived from lineages from Europe and was most likely introduced between mid and the end of February and is part of the G clade.
 As for the introduction from China, it is very much possible that these were not direct introduction an intermediate locations were involved.
+Viruses closely related to the ones of this second local outbreak cluster, for example, are responsible for a large percentage of cases in the New York area.
 
 To date, and as shown in the figure below, these two local outbreak cluster make up the vast majority of cases in Washington State.
 Additionally, we see evidence for several additional introductions of lineages into Washington State that are derived from lineages that previously circulated in Europe, as well as from some, were the origin of the lineage is more uncertain.
-These lineages were most likely introduced from areas were sampling and sequencing is sparse, which could include other areas of the United States.
+
+After having comprised most of the cases initially, the D clade almost went extinct in Washington State.
+In turn, The proportion of cases from the G clade steadily increased over time.
 
 <figure>
 	<a id="fig:ltt"></a>
 	<img style="width:90%;" src="figures/coal_ltt.png" alt="">
 	<figcaption>Figure 1: Lineage through time plot of different local outbreak clusters that have more than one sampled sequence.
   The plot show the inferred lineages through time for different local outbreak clusters.
-  The different lineage through time plots are colored by their likely source of introduction outside the USA.
+  The different lineage through time plots are colored by the amino acid on position 614 on the spike protein.
   </figcaption>
 </figure>
+
+### Rapid early growth of COVID-19 cases
+
+Due to a lack of testing, it was for a long time unclear whether there was local transmission in the USA in general, as well as in Washington State.
+After local transmission was shown on February 29th, testing and genetic sequencing of viruses was started.
+The genetic sequence data allow us to reconstruct transmission dynamics even before large scale testing for COVID-19 began.
+
+To do so, we use two approaches, a birth-death skyline approach where we treat each separate introduction as independent observation of the same local population dynamics ([Müller et al][Müller et al]).
+Additionally, we use a coalescent skyline approach, where we model the coalescence of lineages in Washington State and the introduction of lineages into the state as structured coalescent process with known migration histories.
+The migration histories are given by the initial clustering of sequences into groups of local outbreak clusters.
+
+We estimated the trend in $$R_{e}$$ using sequences from both clades, or the D respectively the G clade individually.
+Using all sequences, we estimate that the outbreak grew rapidly with and $$R_{e}$$ of around 3 between mid and end of February.
+This estimate of $$R_{e}$$ is consistent with estimates of effective reproduction numbers from other places before non-pharmaceutical interventions were taken.
+We observe the maximal values for $$R_{e}$$ during a time when it was unknown that SARS-CoV-2 was spreading in the USA.
+After community spread in Washington State was first reported on the 29th of February, the effective reproduction number started to drop.
+
+
+The initial decline in $$R_{e}$$, was mostly driven by a decline in $$R_{e}$$ of the D clade.
+The G clade, on the other hand, seems to have a high $$R_{e}$$ of around 3 for slightly longer, with a decrease in $$R_{e}$$ starting in early March.
+Notably, however, we do not see a difference in the maximal $$R_{e}$$ and only observe a difference in when the decline in $$R_{e}$$ occured.
+This difference in decline could be explained by the different clades circulating in different geographic and or social groups in Washington State.
+Spread of SARS-CoV-2 was initially reported to be mainly in Snohomish County, north of Seattle.
+This might have affected behavior more strongly in these areas than in places where the G clade was circulating.
+This means that the changes in relative frequencies of D and G clade can likely be explained by a difference in when the $$R_{e}$$ started to decline, rather than in a difference in the maximal observed $$R_{e}$$.
+
+After measures by the state government were first taken on the 11th of March, the $$R_{e}$$ was close to 1 when using sequences from both clade and when using only sequences from the D clade.
+When using only sequences from the G clade, the estimate of $$R_{e}$$ only dropped to around 1 close to when the "Stay Home Stay Healthy" lockdown was implemented.
+Using any set of sequences, we estimate the $$R_{e}$$ to be around or below 1 after the "Stay Home Stay Healthy".
+
+The inferred trends in effective reproduction numbers are consistent with a decrease in daily mobility of people that started at the beginning of March (https://covid.idmod.org/data/Physical_distancing_working_and_still_needed_to_prevent_COVID-19_resurgence.pdf).
+
+
+<figure>
+	<a id="fig:R0"></a>
+	<img style="width:90%;" src="figures/R0.png" alt="">
+	<figcaption>Figure 4: Effective reproduction number of of SARS-CoV-2 in Washington State.
+  The effective reproduction number (on the y-axis) is estimated for intervals of 2 days using a birth-death skyline model ([Stadler et al][Stadler et al]).
+  The three different lines show when local transmission was first reported in WA, when initial state wide measures began and when the stay at home order was issued.
+  </figcaption>
+</figure>
+
+
+### Testing of cases accurately reflects trends in new cases.
+
+While there is intensive testing for COVID-19 in Washington State since the beginning of March, sampling as a percentage of overall cases likely remained low.
+Using the coalescent, we can estimate past population dynamics while conditioning on sampling, which means that we do not directly consider the number of samples through time as informative about the population dynamics.
+
+Using a coalescent skyline approach, we test whether there are significant transmission dynamics that are not captured in the number of positive tests through time.
+
+
+
+We find that daily growth rate in new cases computed from the number of daily positive test to the growth rate estimates from the coalescent skyline approach agree well.
+As mentioned above, the PCR testing captured the last part of the rapid initial rapid growth phase and agrees well after that with the phylodynamic estimates.
+
+<figure>
+	<a id="fig:R0"></a>
+	<img style="width:90%;" src="figures/coal_Ne_vs_test.png" alt="">
+	<figcaption>Figure 6: Comparison between the inferred effective population sizes and number of positive samples by symptom onset.
+  Here we compare the inferred effective population sizes (y-axis, right) to the number of positive samples by symptom onset (y-axis, left).
+	The number of positive samples is shifted by 5 days to correct for the average time difference between the time of infection and onset of symptoms.
+	We show the inferred effective population sizes inferred from sequences from the D and G clade and the two clades seperately.
+  </figcaption>
+</figure>
+
+
+
+
+<figure>
+	<a id="fig:R0"></a>
+	<img style="width:90%;" src="figures/coal_growth.png" alt="">
+	<figcaption>Figure 6: Comparison between growth rate estimates using the coalescent skyline and testing data.
+  Here we compare the growth rates (on the y-axis) of the Washington State outbreak to the growth rates calculated from the number of positive tests from UW Virology.
+  The growth rate estimates from UW Virology are shifted by 9 days to reflect the time delay between the time of infection and the occurrence of symptoms.
+  </figcaption>
+</figure>
+
+
+
+
 
 ### Introductions caused but did not drive the outbreak
 
@@ -137,7 +219,6 @@ As shown in the figure below, we estimate the percentage of new cases to be belo
   </figcaption>
 </figure>
 
-
 We next test how likely adding more samples is to reveal new introductions into Washington State.
 The less likey this is, the less important introductions are to driving the outbreak.
 We test this by randomly subsampling the overall dataset and counting the number of introductions after.
@@ -159,62 +240,6 @@ We find that the observed patterns are very similar to those expected for 1% of 
 </figure>
 
 
-### Rapid early growth of COVID-19 cases
-
-Due to a lack of testing, it was for a long time unclear whether there was local transmission in the USA in general, as well as in Washington State.
-After local transmission was shown on March the 5th, COVID-19 cases from Washington State were sequenced.
-These genetic sequence data allow us to reconstruct transmission dynamics even before large scale testing for COVID-19 began.
-
-To do so, we use two approaches, a birth-death skyline approach where we treat each separate introduction as independent observation of the same local population dynamics.
-Additionally, we use a coalescent skyline approach, where we model the coalescence of lineages in WA and the introduction of lineages into WA as structure coalescent process with known migration histories.
-The migration histories are given by the initial clustering of sequences into groups of local outbreak clusters.
-
-When estimating the effective reproduction number through time, we see that the outbreak grew rapidly with and $$R_{e}$$ of around 3 between mid and end of February.
-This $$R_{e}$$ is consistent with estimates of effective reproduction numbers from other places before non-pharmaceutical interventions were taken.
-During this time, it was unknown that SARS-CoV-2 was spreading in the USA.
-
-After community spread in Washington State was first reported on the 29th of February, the effective reproduction number started to drop.
-Measures by the state government were first taken on the 11th of March.
-We infer the effective reproduction number to be around 1 after than day and therefore before the "stay home stay healthy" order was taken on March 23rd.
-
-The inferred trends in effective reproduction numbers are consistent with a decrease in daily mobility of people that started at the beginning of March (https://covid.idmod.org/data/Physical_distancing_working_and_still_needed_to_prevent_COVID-19_resurgence.pdf).
-
-
-<figure>
-	<a id="fig:R0"></a>
-	<img style="width:90%;" src="figures/R0.png" alt="">
-	<figcaption>Figure 4: Effective reproduction number of of SARS-CoV-2 in Washington State.
-  The effective reproduction number (on the y-axis) is estimated for intervals of 2 weeks using two different approaches.
-  The coalescent skyline and birth death skyline both estimate a very high reproduction rate between mid and end of February and a drastic slow down in March.
-  The three different lines show when local transmission was first reported in WA, when initial lock downs began and when the stay at home order was issued.
-  </figcaption>
-</figure>
-
-
-
-
-### Testing of cases accurately reflects trends in new cases.
-
-While there is intensive testing for COVID-19 in Washington State since the beginning of March, sampling as a percentage of overall cases likely remained low.
-We here test whether there are significant transmission dynamics that are not captured in the number of positive tests through time.
-As we reconstruct the population dynamics from genetic sequence data, we use information from how individual cases are related genetically to reconstruct population dynamics.
-Using the coalescent approach described above, this allows us to reconstruct the population dynamics of the spread of COVID-19 while conditioning on the sampling.
-This means that we do not directly use the number of samples through time to inform these population dynamics.
-This, in turn, allows us to test whether there are undetected transmission dynamics that are not captured by the number of positive samples through time.
-
-We find that daily growth rate in new cases computed from the number of daily positive test to the growth rate estimates from the coalescent skyline approach agree well.
-As mentioned above, the PCR testing captured the last part of the rapid initial rapid growth phase and agrees well after that with the phylodynamic estimates.
-
-
-<figure>
-	<a id="fig:R0"></a>
-	<img style="width:90%;" src="figures/coal_growth.png" alt="">
-	<figcaption>Figure 6: Comparison between growth rate estimates using the coalescent skyline and testing data.
-  Here we compare the growth rates (on the y-axis) of the Washington State outbreak to the growth rates calculated from the number of positive tests from UW Virology.
-  The growth rate estimates from UW Virology are shifted by 9 days to reflect the time delay between the time of infection and the occurrence of symptoms.
-  </figcaption>
-</figure>
-
 
 # Discussion
 
@@ -230,6 +255,11 @@ As mentioned above, the PCR testing captured the last part of the rapid initial 
 * [Kendall]: https://doi.org/10.1214/aoms/1177730285
 * [Bouckaert et al]: https://doi.org/10.1371/journal.pcbi.1006650
 * [Müller et al]: https://doi.org/10.1101/2020.04.27.052225
+* [Baele et al]: https://doi.org/10.1093/bioinformatics/btx088
+* [Ferretti et al]: https://doi.org/10.1126/science.abb6936
+* [Korber et al]: https://doi.org/10.1101/2020.04.29.069054
+* [Stadler et al]: https://doi.org/10.1073/pnas.1207965110
+
 
 
 
