@@ -7,21 +7,31 @@
 
 After it jumped from animals to humans likely sometime in the end of November, beginning of December in Wuhan, China, SARS-COV-2 spread around the world, dramatically impacting the lives of people.
 An initial case of COVID-19, the disease caused by SARS-CoV-2, was reported on January 19th by someone who came back from China 4 days earlier.
-After that, there were no additional (correct?) cases of COVID-19 reported in the greater Seattle area until the end of February, when the genetic sequence data of a virus isolated from a case was shown to be closely linked to the earlier case in January.
+After that, there were no additional (correct?) cases of COVID-19 reported in the greater Seattle area until the end of February, when the genetic sequence data of a virus isolated from a case was shown to be closely linked to the earlier case in January([Bedford et al][Bedford et al]).
 The patient from whom the virus was isolate from did not have any travel history and represents the first known case of community transmission in the state.
 The exact relation to the initial introduction remains unclear and more than one introduction of similar strains could account for the observed patterns as well ([Bedford et al][Bedford et al]).
 
-After, PCR based testing of people was ramped up, showing a rapidly growing outbreak in the greater Seattle area.
-While testing of cases can give us insight into how the epidemic behaved, it is unclear if undersampling of cases, particularly in the beginning of the epidemic allows us to use this data to characterize the outbreak.
-Phylodynamics allows us to reconstruct past population dynamics from genetic sequence data.
-While birth-death approaches do take into account how many samples there are to inform population dynamics through time, coalescent approaches condition on sampling.
-This means that they allow us to reconstruct past population dynamics based on how individual cases are connected and not the how many samples there are at different points in time.
+After local spread of SARS-CoV-2 was communicated, PCR based testing of people was ramped up, showing a rapidly growing outbreak, mainly greater Seattle area.
+While the number of positive test over time can give us insight into how the epidemic behaved, there is likely a significant undercounting of the actual number of cases.
 
-We here first split the outbreak in Washington State into sets of sequences that are likely connected by local transmission and to which we refer to as local outbreak clusters.
+Instead of directly using the number of positive tests to infer the dynamics of SARS-CoV-2 spread in Washington State, we here use the genetic sequence data of viruses isolated from patients in Washington State using phylodynamic methods ([Grenfell et al][Grenfell et al]).
+To do so, phylodynamic method use the information of when viruses isolated from different patients last shared a common ancestor to inform these dynamics.
+There are two conceptually different frameworks to do so, coalescent ([Kingman][Kingman]) and birth-death models ([Kendall][Kendall]).
+In birth-death approaches, the birth, death and sampling of lineages over time are modelled.
+Each lineage, which corresponds to a virus in a host, has a rate of birth (one lineage become two), death, or being sampled and appearing as a tip in the phylogeny.
+In an epidemiological context, these rates correspond to transmission and becoming un-infectious rates.
+
+Coalescent models on the other hand, try to describe something conceptually very different, that is how lineages coalesce from present to past.
+Each lineage coalesces with any other co-existing lineage at a rate that is inversely proportional to the effective population size and proportional to the number of other co-existing lineages.
+Coalescent approaches, in contrast to birth-death approaches, condition on sampling.
+This means that they do not directly take into account how many samples there are available through time to inform population dynamics.
+
+We here infer the past population dynamics of SARS-CoV-2 spread from local outbreak clusters of genetic sequence data from SARS-CoV-2 viruses isolated from patients in Washington State.
+TO do so, we here first split the outbreak in Washington State into sets of sequences that are likely connected by local transmission (to which we refer to as local outbreak clusters).
 We then use these local outbreak cluster to infer the population dynamics of the Washington State outbreak jointly from all local outbreak clusters.
 
-This allows us to first estimate the relative contribution of introductions compared to local transmissions, showing that while introduction causes the outbreak, the overall impact introductions have in driving the outbreak is low.
 
+This allows us to first estimate the relative contribution of introductions compared to local transmissions, showing that while introduction causes the outbreak, the overall impact introductions have in driving the outbreak is low.
 We then show that although testing PCR started late, it largely captured the dynamics of the outbreak.
 
 ## Methods and Materials
@@ -29,9 +39,11 @@ We then show that although testing PCR started late, it largely captured the dyn
 ### Introductions into Washington State
 
 In order to distinguish between sequences that are connected by local transmission, we cluster all sequences from Washington State together based on their pairwise genetic distance.
-To do so, we first built a phylogenetic tree based solely on the pairwise genetic distances using the sequences from Washington State using the nextstrain pipeline.
-We then consider samples as connected if their pairwise genetic distance is less than 5 mutations apart.
-Next, we group all sequences together that are connected via the above threshold.
+To do so, we first built a phylogenetic tree based solely on the pairwise genetic distances using the sequences from Washington State using the [nextstrain pipeline][https://nextstrain.org/ncov].
+
+We then compute the pairwise genetic distance between any two samples from Washington State.
+If two samples have a genetic distance of less than 5 mutations, we consider them connected.
+Next, we group all sequences together that are connected via the above threshold and consider each of these groups to be a separate local outbreak cluster.
 
 ### Estimating population dynamics jointly from multiple local outbreak clusters
 
@@ -50,9 +62,11 @@ We then use two different ways to account for correlations between adjacent effe
 First, we use the classic skyride approach where we assume that the logarithm of adjacent N<sub>e</sub> is normally distributed with mean 0 and an estimated sigma.
 Second, we use an approach where we assume that the differences the growth rates are normally distributed with mean 0 and an estimated sigma.
 This is equivalent to using an exponential coalescent model with time varying growth rates.
+We implemented this approach as extension to the Bayesian phylogenetics software BEAST2 ([Bouckaert et al][Bouckaert et al]).
+The code for the multi tree coalescent is available here (https://github.com/nicfel/NAB).
 
 In contrast to backwards in time coalescent approaches, we can consider different local outbreak clusters as independent observations of the same underlying population process using birth death models.
-We infer the effective reproduction number using the birth-death skyline model by assuming the different local outbreak clusters are independent observations of the same process with the same parameters.
+We infer the effective reproduction number using the birth-death skyline model by assuming the different local outbreak clusters are independent observations of the same process with the same parameters ([Müller et al][Müller et al]).
 As for the coalescent approach, we assume adjacent effective reproduction numbers to be normally distributed in log space with mean 0 and an estimated sigma.
 We further assume the becoming un-infectious rate to be 36.5 per year which corresponds to an average time of infectivity of 10 days.
 Further, we assume that the probability of an individual to be sampled and sequenced upon recovery to be the same throughout the sampled period.
@@ -209,8 +223,16 @@ As mentioned above, the PCR testing captured the last part of the rapid initial 
 * Trends in testing data accurately reflect trends in transmission dynamics -> positive tests can be used base public health decisions on even if there is dramatic undersampling.
 
 ## References
+
 * [Bedford et al]: https://doi.org/10.1101/2020.04.02.20051417
+* [Grenfell et al]: https://doi.org/10.1126/science.1090727
+* [Kingman]: https://doi.org/10.2307/3213548
+* [Kendall]: https://doi.org/10.1214/aoms/1177730285
+* [Bouckaert et al]: https://doi.org/10.1371/journal.pcbi.1006650
 * [Müller et al]: https://doi.org/10.1101/2020.04.27.052225
+
+
+
 
 
 
