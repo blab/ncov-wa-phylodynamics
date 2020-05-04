@@ -74,7 +74,7 @@ As for the coalescent approach, we assume adjacent effective reproduction number
 We further assume the becoming un-infectious rate to be 36.5 per year which corresponds to an average time of infectivity of 10 days ([Ferretti et al][Ferretti et al]).
 We allow that the probability of an individual to be sampled and sequenced upon recovery to change every 14 days.
 
-### Sampling of epidemiologically unlinked cases
+### Subsampling of sequences
 
 We analysed the population dynamics in total for 3 different datasets.
 In the first datasets, we randomly subsample 1000 of the sequences from Washington State.
@@ -87,8 +87,6 @@ For these two datasets, we use the same subsampling procedure as for the above d
 ## Results
 
 ### Outbreak in Washington State caused by repeated introductions
-
-
 
 SARS-CoV-2 was introduced repeatedly into Washington State from different parts of the world.
 The outbreak can be separated into two larger groups that make up the majority of cases and the majority of cases originated from at least two different introductions into Washington State.
@@ -200,13 +198,13 @@ We find that the trends in growth rates are the same in all estimates.
 </figure>
 
 
+### Introductions caused but did not sustain the outbreak
 
+As mentioned above, the Washington State outbreak can be seen as many individual outbreaks of what we consider local outbreak clusters.
+All these clusters were seeded by individual introductions into the State.
+While introductions certainly caused the outbreak in Washington State, it is, however, unclear how important they where to sustaining it.
 
-
-### Introductions caused but did not drive the outbreak
-
-While introductions certainly caused the outbreak in Washington State, it is unclear how important they where to driving it.
-To test this, we estimate the relative contribution of introduction compared to local transmission.
+To test this, we estimate the relative contribution of introductions compared to local transmission.
 As described in the Methods and Materials part, the coalescent skyline estimate from multiple local outbreak clusters allows us to estimate the rate of introduction.
 The rate of introduction $$i$$ can be described as $$\frac{I_{outside} m^{f}}{I_{WA}}$$.
 This means that the number of introductions per unit of time can be expressed as $$i * I_{WA} = I_{outside} m^{f}$$
@@ -216,7 +214,10 @@ We then compute the ratio of introductions over local transmissions as the ratio
 
 
 The resulting estimates include a large amount of assumptions and should be interpreted as such, but can nevertheless give us an idea of how important introductions overall are.
-As shown in the figure below, we estimate the percentage of new cases to be below 10 after the initial introductions and most likely to be around 1%.
+As shown in the figure below, we estimate the percentage of new cases to be below 10 after the initial introductions and most likely to be between 1% and 3%.
+
+Towards the April, the estimate increases to between 3% and 10%.
+This increase is likely driven by a decrease in the estimated local transmission, rather than and increase in the introductions.
 
 <figure>
 	<a id="fig:perc_intro"></a>
