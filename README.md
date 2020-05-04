@@ -1,4 +1,4 @@
-# Outbreak in Washington State driven by repeated introductions and rapid early growth
+# Outbreak in Washington State driven by rapid early growth
 
 <sup>1</sup>Vaccine and Infectious Disease Division, Fred Hutchinson Cancer Research Center, Seattle, WA, USA
 
@@ -7,9 +7,9 @@
 
 After it jumped from animals to humans likely sometime in the end of November, beginning of December in Wuhan, China, SARS-COV-2 spread around the world, dramatically impacting the lives of people.
 An initial case of COVID-19, the disease caused by SARS-CoV-2, was reported on January 19th by someone who came back from China 4 days earlier.
-After that, there were no (correct?) cases of COVID-19 reported in the greater Seattle area until the end of February, when the genetic sequence data of a virus isolated from a case was shown to be closely linked to the earlier case in January.
+After that, there were no additional (correct?) cases of COVID-19 reported in the greater Seattle area until the end of February, when the genetic sequence data of a virus isolated from a case was shown to be closely linked to the earlier case in January.
 The patient from whom the virus was isolate from did not have any travel history and represents the first known case of community transmission in the state.
-The exact relation to the initial introduction remains unclear and more than one introduction of similar strains could account for the observed patterns as well.
+The exact relation to the initial introduction remains unclear and more than one introduction of similar strains could account for the observed patterns as well ([Bedford et al., 2020][Bedford et al., 2020]).
 
 After, PCR based testing of people was ramped up, showing a rapidly growing outbreak in the greater Seattle area.
 While testing of cases can give us insight into how the epidemic behaved, it is unclear if undersampling of cases, particularly in the beginning of the epidemic allows us to use this data to characterize the outbreak.
@@ -207,6 +207,11 @@ As mentioned above, the PCR testing captured the last part of the rapid initial 
 * Introductions caused outbreak, but did not drive it -> Actions taken locally to reduce transmission are best suited to reduce burden of COVID-19.
 * Actions individuals take to reduce transmission likely go a long way to reduce transmission -> effective public health campaigns
 * Trends in testing data accurately reflect trends in transmission dynamics -> positive tests can be used base public health decisions on even if there is dramatic undersampling.
+
+## References
+* [Bedford et al. 2020] https://doi.org/10.1101/2020.04.02.20051417
+* [Müller et al., 2020a] https://doi.org/10.1101/2020.04.27.052225
+
 
 
 

@@ -1,7 +1,7 @@
 % getSeqFromSims
 
 % defines the start of the simulation
-sample_cutoff = {'2020-03-24'};
+sample_cutoff = {'2020-04-08'};
 end_date = '2020-01-25';
 
 % define the reporting delay in days
@@ -17,19 +17,43 @@ for rep = 0:8
         id = cell(0,0);
         date = cell(0,0);
         date_val = zeros(0,0);
-        wa_clusters = cell(1,1);wa_clusters{1}='rem';
+        wa_clusters = cell(1000,1);
+        
         while ~feof(f)
             line = strsplit(fgets(f), '\t');
             date_num = datenum(line{2});
             if date_num<=datenum(sample_cutoff(sc))
                 id{c,1} = line{1};
                 date{c,1} = line{2};
-                wa_clusters{1} = [wa_clusters{1} ',' id{c,1}];
+                
+                wa_clusters{str2double(line{3})} = [wa_clusters{str2double(line{3})} ',' id{c,1}];
                 c=c+1;
             end
         end
-        wa_clusters{1} = strrep(wa_clusters{1}, 'rem,','');
+        wa_clusters = wa_clusters(~cellfun('isempty',wa_clusters));
+        for i = 1:length(wa_clusters)
+            wa_clusters{i} = wa_clusters{i}(2:end);
+        end
         fclose(f);
+        
+        %% get the sampling times of each cluster
+        sampling_times = cell(length(wa_clusters),1);
+        max_sampling_times = zeros(length(wa_clusters),1);
+        all_sampling = zeros(0,0);
+
+        for a = 1 : length(sampling_times)
+            sampling_times{a} = zeros(0,0);
+            seqs = strsplit(wa_clusters{a}, ',');
+            for b = 1: length(seqs)
+                % find the sequence index
+                ind = find(ismember(id, seqs{b}));
+                sampling_times{a}(b) = datenum(date(ind));
+                all_sampling(end+1,1) =  datenum(date(ind));
+            end
+            max_sampling_times(a) = max(sampling_times{a});
+
+        end
+
 
 
         %% build the mutlti coal xml
@@ -108,8 +132,8 @@ for rep = 0:8
                     end
                 elseif contains(line, 'insert_priors')
 
-              fprintf(g,'\t\t\t\t<prior id="Sigmaprior2" name="distribution" x="@sigma.immi">\n');
-                fprintf(g,'\t\t\t\t\t<LogNormal id="Uniform.4" name="distr" meanInRealSpace="true" M="0.5" S="0.25"/>\n');
+                fprintf(g,'\t\t\t\t<prior id="Sigmaprior2" name="distribution" x="@sigma.immi">\n');
+                fprintf(g,'\t\t\t\t\t<LogNormal id="Uniform.4" name="distr" meanInRealSpace="true" M="0.5" S="1"/>\n');
                 fprintf(g,'\t\t\t\t</prior>\n');
 
                 if sp==1
@@ -154,8 +178,7 @@ for rep = 0:8
                     fprintf(g,'\t\t\t\t\t<immigrationRate id="timeVaryingMigrationRates" spec="nab.skygrid.TimeVaryingRates" rate="@immigrationRate" rateShifts="@rateShifts.immi"/>\n');
                     fprintf(g,'\t\t\t\t\t<multiTreeIntervals id="TreeIntervals.t" spec="nab.multitree.MultiTreeIntervals">\n');
                     for a = 1 : length(wa_clusters)
-    %                     offset = (max(max_sampling_times)-max_sampling_times(a))/365;
-                        offset = 0;
+                        offset = (max(max_sampling_times)-max_sampling_times(a))/365;
                         fprintf(g,'\t\t\t\t\t\t<tree idref="Tree.t:lc_%d"/>\n', a);
                         fprintf(g,'\t\t\t\t\t\t<parameter id="offset:lc_%d" estimate="true" name="offset">%f</parameter>\n', a, offset);
                         fprintf(g,'\t\t\t\t\t\t<rootLength idref="rootLength:lc_%d"/>\n',a);
@@ -336,8 +359,7 @@ for rep = 0:8
                     end
 
                     for a = 1 : length(wa_clusters)
-    %                     offset = (max(max_sampling_times)-max_sampling_times(a))/365;
-                        offset=0;
+                        offset = (max(max_sampling_times)-max_sampling_times(a))/365;
                         rate_shifts_offsetted = rate_shifts-offset;
                         offset_val = find(rate_shifts_offsetted>0);
                         offset_val = offset_val(1)-1;

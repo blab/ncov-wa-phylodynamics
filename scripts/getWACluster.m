@@ -1,22 +1,38 @@
 % function [] = getWACluster()
 threshold = 5;
 
+% get the clade mapping 
+f = fopen('../../ncov-severity/across-states/strain_to_clade.tsv');fgets(f);
+
+c = 1;
+strain.id = cell(0,0);strain.strain = cell(0,0);
+while ~feof(f)
+    line = strsplit(strtrim(fgets(f)));
+    strain.strain{c} = line{1};
+    strain.id{c} = line{2};
+    c = c+1;
+end
+fclose(f);
+
 % some random keyboard hits for the number generator
 rng(108978544);
 % define how many samples to take that are not from UW
-not_UW_sample = [0 200];
+max_nr_samples = [1000 500 500];
 
 % exclude WA1 
 exlude = {'USA/WA1/2020'};
-sample_cutoff = {'2020-04-08', '2020-04-08'};
+sample_cutoff = {'2020-04-08', '2020-04-08', '2020-04-08'};
+clade = {'all', 'D', 'G'};
 
-end_date = '2020-01-25';
+
+
+end_date = '2020-01-31';
 
 s = fopen('../results/mrsi.tsv', 'w');
 cls = fopen('../results/cluster_size.tsv', 'w');
 st = fopen('../results/sampling_times.tsv', 'w');
 
-fprintf(s,'filename\tmrsi\n');
+fprintf(s,'filename\tmrsi\tclade\n');
 fprintf(cls,'filename\tnumber\tsize\n');
 fprintf(st,'Date\tnumber\n');
 
@@ -37,6 +53,7 @@ for sc = 1 : length(sample_cutoff)
     location_id = find(ismember(line,'location'));
     c=1;
     id = cell(0,0);
+    clade_membership = cell(0,0);
     division = cell(0,0);
     lab = cell(0,0);
     sub = cell(0,0);
@@ -46,6 +63,10 @@ for sc = 1 : length(sample_cutoff)
     while ~feof(f)
         line = strsplit(fgets(f), '\t');
         id{c,1} = line{1};
+        strain_id = find(ismember(strain.id,line{1}));
+        if ~isempty(strain_id)
+            clade_membership{c,1} = strain.strain{strain_id};
+        end
         date{c,1} = line{date_id};
         lab{c,1} = line{originating_id};
         sub{c,1} = line{submitting_id};
@@ -62,44 +83,7 @@ for sc = 1 : length(sample_cutoff)
         c=c+1;
     end
     fclose(f);
-    
-    
-    % get all sequences not from UW Virology
-    not_uw = find(~ismember(lab,'UW Virology Lab') ...
-        & ismember(division, 'Washington'));
-    
-
-    % subsample based on sequence dates
-    sample_date = date_val(not_uw);
-    use_sample = zeros(0,0);
-    
-    max_samples = min(length(not_uw),not_UW_sample(sc));
-
-    while length(use_sample)<max_samples
-        % sample a date
-        uni_dates = unique(sample_date);
-        this_date = randsample(uni_dates,1);
-        if this_date ~= -1
-            potential_samples = not_uw(sample_date==this_date);
-            if length(potential_samples)>1
-                use_sample(end+1,1) = randsample(potential_samples,1);
-            else
-                use_sample(end+1,1) = potential_samples;
-            end
-            sample_date(not_uw==use_sample(end)) = -1;
-        end
-    end
-    
-
-    % only use from lab
-    division(~ismember(lab,'UW Virology Lab')) = {'NA'};
-    division(use_sample) = {'Washington'};
-
-    
-    
-%         & ~ismember(location,'King County')...
-%          & ~ismember(location,'Snohomish County')) = {'NA'};
-    
+        
     % get all leafnames
     leafs = get(tree, 'leafnames');
     % get all WA samples
@@ -148,6 +132,81 @@ for sc = 1 : length(sample_cutoff)
     cl_ind = find(~ismember(wa_leafs, 'NA'));
     wa_clusters = wa_leafs(cl_ind);
 
+    
+    % remove clusters if they are not in the correct clade
+    if ~strcmp(clade{sc}, 'all')
+        for a = length(wa_clusters):-1:1
+            seqs = strsplit(wa_clusters{a}, ',');
+            is_in_clade = cell(0,0);
+            for b = 1 : length(seqs)
+                ind = find(ismember(id,seqs{b}));
+                is_in_clade{b} = clade_membership{ind};
+            end
+            u_cl = unique(is_in_clade);
+            % if cluster is not of clade, remove cluster
+            if isempty(find(ismember(u_cl, clade{sc})))
+                wa_clusters(a) = [];
+            end
+        end
+    end
+    
+    %% randomly subsample was clusters   
+    all_seqs = cell(0,0);
+    wa_ind = zeros(0,0);
+    for a = 1 : length(wa_clusters)
+        seqs = strsplit(wa_clusters{a}, ',');
+        for b = 1 : length(seqs)
+            all_seqs{end+1,1} = seqs{b};
+            wa_ind(end+1,1) = find(ismember(id,seqs{b}));
+        end
+    end
+    
+    % subsample based on sequence dates
+    sample_date = date_val(wa_ind);
+    use_sample = zeros(0,0);
+    
+    max_samples = min(length(wa_ind),max_nr_samples(sc));
+
+    while length(use_sample)<max_samples
+        % sample a date
+        uni_dates = unique(sample_date);
+        this_date = randsample(uni_dates,1);
+        if this_date ~= -1
+            potential_samples = wa_ind(sample_date==this_date);
+            if length(potential_samples)>1
+                use_sample(end+1,1) = randsample(potential_samples,1);
+            else
+                use_sample(end+1,1) = potential_samples;
+            end
+            sample_date(wa_ind==use_sample(end)) = -1;
+        end
+    end
+    
+    keep_samples = id(use_sample);
+    for a = 1 : length(wa_clusters)
+        seqs = strsplit(wa_clusters{a}, ',');
+        for b = 1 : length(seqs)
+            if sum(ismember(keep_samples, seqs{b}))==0
+                wa_clusters{a}=strrep(wa_clusters{a}, seqs{b}, '');
+                wa_clusters{a}=strrep(wa_clusters{a}, ',,', ',');
+            end
+        end
+    end
+    
+    for a = length(wa_clusters):-1:1
+        if isempty(wa_clusters{a}) || strcmp(wa_clusters{a}, ',')
+            wa_clusters(a) = [];
+        else
+            if strcmp(wa_clusters{a}(1), ',')
+                wa_clusters{a}(1)=[];
+            end
+            if strcmp(wa_clusters{a}(end), ',')
+                wa_clusters{a}(end)=[];
+            end
+        end
+    end
+
+
 
     %% get the sampling times of each cluster
     sampling_times = cell(length(wa_clusters),1);
@@ -180,7 +239,7 @@ for sc = 1 : length(sample_cutoff)
     %% build the mutlti coal xml
     method = {'skygrid', 'independent', 'skygrowth'};
     for sp = 1 : length(method)
-        fprintf(s, 'multicoal_%s_%d\t%s\n',method{sp}, sc, datestr(max(max_sampling_times), 'yyyy-mm-dd'));
+        fprintf(s, 'multicoal_%s_%d\t%s\t%s\n',method{sp}, sc, datestr(max(max_sampling_times), 'yyyy-mm-dd'), clade{sc});
         for rep = 0 : 2
             f = fopen('../xml_templates/multicoal_template.xml');
             g = fopen(sprintf('../xmls/multicoal_%s_%d_rep%d.xml', method{sp}, sc, rep), 'w');
@@ -336,7 +395,7 @@ for sc = 1 : length(sample_cutoff)
                         fprintf(g,'\t\t<operator id="CoalescentRootLengthTreeScaler.t:lc_%d" spec="ScaleOperator" scaleFactor="0.5" parameter="@rootLength:lc_%d" weight="1.0"/>\n',a,a);
 
                     end
-                    fprintf(g,'\t\t<operator id="AMVGoperator1" spec="AdaptableVarianceMultivariateNormalOperator" every="100" beta="0.1" scaleFactor="0.1" weight="10.0">\n');
+                    fprintf(g,'\t\t<operator id="AMVGoperator1" spec="AdaptableVarianceMultivariateNormalOperator" every="100" beta="0.1" scaleFactor="0.1" weight="500.0">\n');
                     fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$NoTransform" f="@Ne"/>\n');
                     if sp==1 || sp==3
                         fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$LogTransform" f="@sigma.Ne"/>\n');
@@ -383,7 +442,7 @@ for sc = 1 : length(sample_cutoff)
     %% build the mutlti bdsky xml
     method = {'skygrid'};
     for sp = 1 : length(method)
-        fprintf(s, 'multibd_%s_%d\t%s\n',method{sp}, sc, datestr(max(max_sampling_times), 'yyyy-mm-dd'));
+        fprintf(s, 'multibd_%s_%d\t%s\t%s\n',method{sp}, sc, datestr(max(max_sampling_times), 'yyyy-mm-dd'), clade{sc});
 
         for rep = 0 : 2
             f = fopen('../xml_templates/multibd_template.xml');
@@ -442,8 +501,8 @@ for sc = 1 : length(sample_cutoff)
                         fprintf(g,'\t\t\t<parameter id="rootLength:lc_%d" name="stateNode" upper="0.1" dimension="1">0.01</parameter>\n',a);
                     end
                     fprintf(g,'\t\t\t<parameter id="logReproductiveNumber" dimension="%d" name="stateNode">0</parameter>\n', length(rate_shifts)+1);
-                    fprintf(g,'\t\t\t<parameter id="samplingProportion" dimension="%d" upper="0.0" name="stateNode">-100 -1</parameter>\n',0);
-    %                 fprintf(g,'\t\t\t<parameter id="sigma.Sampling" dimension="1" name="stateNode">1000</parameter>\n');
+                    fprintf(g,'\t\t\t<parameter id="samplingProportion" dimension="%d" upper="0.0" name="stateNode">-2</parameter>\n',length(rate_shifts_immi)+1);
+                    fprintf(g,'\t\t\t<parameter id="sigma.Sampling" dimension="1" name="stateNode">1000</parameter>\n');
                 elseif contains(line, 'insert_init_tree')
                     for a = 1 : length(wa_clusters)
                         seqs = strsplit(wa_clusters{a}, ',');
@@ -479,12 +538,12 @@ for sc = 1 : length(sample_cutoff)
     %                     fprintf(g,'\t\t\t\t</prior>\n');
 
                         fprintf(g,'\t\t\t\t<distribution spec=''beast.mascotskyline.skyline.LogSmoothingPrior'' NeLog="@samplingProportion">\n');
-    %                     fprintf(g,'\t\t\t\t\t<distr spec="beast.math.distributions.Normal"  mean="0" sigma="1000">\n');
-    %                     fprintf(g,'\t\t\t\t\t<sigma idref="sigma.Sampling"/>\n');
-    %                     fprintf(g,'\t\t\t\t\t</distr>\n');
-                        fprintf(g,'\t\t\t\t\t<distr spec="beast.math.distributions.Uniform" lower="-100000" upper="100000"/>\n');
-                        fprintf(g,'\t\t\t\t\t<initialDistr spec="beast.math.distributions.Normal"  mean="-100" sigma="1"/>\n');
-                        fprintf(g,'\t\t\t\t\t<finalDistr spec="beast.math.distributions.Normal"  mean="-3" sigma="1"/>\n');
+                        fprintf(g,'\t\t\t\t\t<distr spec="beast.math.distributions.Normal"  mean="0">\n');
+                        fprintf(g,'\t\t\t\t\t<sigma idref="sigma.Sampling"/>\n');
+                        fprintf(g,'\t\t\t\t\t</distr>\n');
+%                         fprintf(g,'\t\t\t\t\t<distr spec="beast.math.distributions.Uniform" lower="-100000" upper="100000"/>\n');
+                        fprintf(g,'\t\t\t\t\t<initialDistr spec="beast.math.distributions.Normal"  mean="-3" sigma="1"/>\n');
+%                         fprintf(g,'\t\t\t\t\t<finalDistr spec="beast.math.distributions.Normal"  mean="-3" sigma="1"/>\n');
                         fprintf(g,'\t\t\t\t</distribution>\n');
 
 
@@ -496,20 +555,29 @@ for sc = 1 : length(sample_cutoff)
 
                     for a = 1 : length(wa_clusters)
                         offset = (max(max_sampling_times)-max_sampling_times(a))/365;
+                        
+                        % compute rate shifts for R0
                         rate_shifts_offsetted = rate_shifts-offset;
                         offset_val = find(rate_shifts_offsetted>0);
                         offset_val = offset_val(1)-1;
                         rate_shifts_offsetted(rate_shifts_offsetted<=0)=[];
                         rate_shifts_offsetted = [0 rate_shifts_offsetted];
-                        rate_shifts_sampling = [0 0.15-offset];
+                        
+                        % compute rate shifts for sampling
+                        rate_shifts_offsetted_samp = rate_shifts_immi-offset;
+                        offset_val_sampling = find(rate_shifts_offsetted_samp>0);
+                        offset_val_sampling = offset_val_sampling(1)-1;
+                        rate_shifts_offsetted_samp(rate_shifts_offsetted_samp<=0)=[];
+                        rate_shifts_offsetted_samp = [0 rate_shifts_offsetted_samp];
+
                         fprintf(g,'\t\t\t\t<distribution id="BitrhDeathSkySerial.t:lc_%d" spec="beast.evolution.speciation.BirthDeathSkylineModel" origin="@rootLength:lc_%d" absoluteReproductiveNumber="@absoluteReproductiveNumber" tree="@Tree.t:lc_%d" originIsRootEdge="true">\n', a, a, a);
                         fprintf(g,'\t\t\t\t\t<reverseTimeArrays id="reverse.lc_%d" estimate="false" spec="parameter.BooleanParameter">true true true true</reverseTimeArrays>\n', a);
                         fprintf(g,'\t\t\t\t\t<parameter id="intervalTimes1.lc_%d" estimate="false" name="birthRateChangeTimes">%s</parameter>\n', a, sprintf('%f ', rate_shifts_offsetted));
                         fprintf(g,'\t\t\t\t\t<parameter id="intervalTimes2.lc_%d" estimate="false" name="deathRateChangeTimes">%s</parameter>\n', a, sprintf('%f ', 0));
-                        fprintf(g,'\t\t\t\t\t<parameter id="intervalTimes3.lc_%d" estimate="false" name="samplingRateChangeTimes">%s</parameter>\n', a, sprintf('%f ', rate_shifts_sampling));
+                        fprintf(g,'\t\t\t\t\t<parameter id="intervalTimes3.lc_%d" estimate="false" name="samplingRateChangeTimes">%s</parameter>\n', a, sprintf('%f ', rate_shifts_offsetted_samp));
                         fprintf(g,'\t\t\t\t\t<truncatedRealParameter name="logReproductiveNumber" spec="beast.evolution.speciation.TruncatedRealParameter" id="truncatedParam1.lc_%d" parameter="@logReproductiveNumber" offset="%d"/>\n', a, offset_val);
                         fprintf(g,'\t\t\t\t\t<truncatedRealParameter name="becomeUninfectiousRate" spec="beast.evolution.speciation.TruncatedRealParameter" id="truncatedParam2.lc_%d" parameter="@becomeUninfectiousRate" offset="%d"/>\n', a, 0);
-                        fprintf(g,'\t\t\t\t\t<truncatedRealParameter name="samplingProportion" spec="beast.evolution.speciation.TruncatedRealParameter" isLog="true" id="truncatedParam3.lc_%d" parameter="@samplingProportion" offset="%d"/>\n', a, 0);
+                        fprintf(g,'\t\t\t\t\t<truncatedRealParameter name="samplingProportion" spec="beast.evolution.speciation.TruncatedRealParameter" isLog="true" id="truncatedParam3.lc_%d" parameter="@samplingProportion" offset="%d"/>\n', a, offset_val_sampling);
                         fprintf(g,'\t\t\t\t</distribution>\n');
 
                     end
@@ -545,18 +613,18 @@ for sc = 1 : length(sample_cutoff)
                         fprintf(g,'\t\t<operator id="CoalescentRootLengthTreeScaler.t:lc_%d" spec="ScaleOperator" scaleFactor="0.5" parameter="@rootLength:lc_%d" weight="1.0"/>\n',a,a);
 
                     end
-                    fprintf(g,'\t\t<operator id="AMVGoperator1" spec="AdaptableVarianceMultivariateNormalOperator" every="100" beta="0.1" scaleFactor="0.1" weight="10.0">\n');
+                    fprintf(g,'\t\t<operator id="AMVGoperator1" spec="AdaptableVarianceMultivariateNormalOperator" every="100" beta="0.1" scaleFactor="0.1" weight="500.0">\n');
                     fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$NoTransform" f="@logReproductiveNumber"/>\n');
                     if sp==1
                         fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$LogTransform" f="@sigma.Ne"/>\n');
                     end
-    %                 fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$LogTransform" f="@sigma.Sampling"/>\n');
+                    fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$LogTransform" f="@sigma.Sampling"/>\n');
                     fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$NoTransform" f="@samplingProportion"/>\n');
                     fprintf(g,'\t\t</operator>\n');
 
                 elseif contains(line, 'insert_logs')
                     fprintf(g,'\t\t\t<log idref="sigma.Ne"/>\n');
-    %                 fprintf(g,'\t\t\t<log idref="sigma.Sampling"/>\n');
+                    fprintf(g,'\t\t\t<log idref="sigma.Sampling"/>\n');
 
                     fprintf(g,'\t\t\t<log idref="logReproductiveNumber"/>\n');
                     fprintf(g,'\t\t\t<log idref="samplingProportion"/>\n');

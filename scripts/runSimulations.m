@@ -1,8 +1,8 @@
 % run sims
-sample_cutoff = {'2020-03-24'};
+sample_cutoff = {'2020-04-08'};
 end_date = '2020-01-25';
 
-start_tree = '2020-02-10';
+start_tree = '2020-02-06';
 
 clock_rate = 0.0011;
 
@@ -13,13 +13,11 @@ reporting_delay=0;
 
 rate_shift = datenum(start_tree, 'yyyy-mm-dd'):2:(datenum(sample_cutoff, 'yyyy-mm-dd')+14);
 rate_shift_year = (rate_shift - datenum(start_tree, 'yyyy-mm-dd'))/366;
-R0 = [repmat(3,1,9) 3:-(2/7):1 repmat(1,1,12)];
+R0 = [repmat(3,1,8) 3:-(2.4/9):1 0.6];
+R0(end+1:length(rate_shift_year)) = R0(end);
 
-ds
 eqn1 = p*r/(1-p);
 eqn2 = p*r/(1-p)^2;
-
-
 
 
 for i = 1 : length(R0)
@@ -84,7 +82,7 @@ for rep = 0 : 8
     for i = 1 : length(name)
         tmp = strsplit(name{i}, ':');
         new_length = [tmp{1} ':' sprintf('%.12f',(str2double(tmp{2})+reporting_delay/366))];
-        fprintf('%s %s\n',tmp{2}, new_length)
+%         fprintf('%s %s\n',tmp{2}, new_length)
         tree = strrep(tree, name{i}, new_length);
 
     end
@@ -97,14 +95,18 @@ for rep = 0 : 8
     line = fgets(f);
     % get all the sampling times
     st = regexp(line, '(\d*)\[&type="I",reaction="Sampling",time=(\d*)\.(\d*)\]','match');
-
+    % get the cluster membership of leafs
+    tree_str = strsplit(strtrim(line));
+    cluster_member = getClustersFromTree(tree_str{end});
+    
+    
     m = fopen(sprintf('../simulations/eir_%d.tsv', rep),'w');
     for i = 1 : length(st)
         tmp = strsplit(st{i}, '[');
         tmp2 = strsplit(st{i}, '=');
         day = origin+floor((str2double(strrep(tmp2{end}, ']','')))*366);
         day = datestr(day+reporting_delay, 'yyyy-mm-dd');
-        fprintf(m,'i%s\t%s\n',tmp{1}, day);
+        fprintf(m,'i%s\t%s\t%d\n',tmp{1}, day, cluster_member(str2double(tmp{1})));
     end
 
     ptree = phytreeread(tree);

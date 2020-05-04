@@ -43,7 +43,7 @@ becoming_uninf = 36.5
 generation_time = 1/becoming_uninf
 
 # reporting delay of cases after infection https://science.sciencemag.org/content/early/2020/03/24/science.abb3221
-reporting_delay = 0
+reporting_delay = 10
 
 # define the colors for bd and coal methods
 coal_col = "#56B4E9"
@@ -58,21 +58,33 @@ test_col = "#D55E00"
 library(rjson)
 first.p = T
 first.g = T
+first.i = T
 start_val=2
+
+
 for (rep in seq(0,8)){
   df <- fromJSON(file=paste(path, "/simulations/eir_", rep, ".json", sep=""))
   inf = data.frame(time=df$t, I=df$I, E=df$E, s=df$R)
   
   intro_times = data.frame(t=df$t[which(diff(df$samp)==1)])
+  new.introductions = data.frame(t=df$t[which(diff(df$IntroCount)>0)], val=1, timeframe=rep)
   new_inf = data.frame(t=df$t[which(diff(df$E)>0)], val = diff(df$E)[which(diff(df$E)>0)])
   new_recovered = rbind(data.frame(t=df$t[which(diff(df$R)>0)], val = diff(df$R)[which(diff(df$R)>0)]),
                         data.frame(t=df$t[which(diff(df$samp)>0)], val = diff(df$R)[which(diff(df$samp)>0)]))
-                        
+  
+  new.introductions = rbind(new.introductions, data.frame(t=rep(new_inf$t, new_inf$val), val=0, timeframe=rep))
+  if (first.i){
+    introductions = new.introductions
+    first.i = F
+  }else{
+    introductions = rbind(introductions, new.introductions)
+  }
+
   
   p=ggplot() +
-    # geom_line(data=inf, aes(x=time,y=I+E))+
+    geom_line(data=inf, aes(x=time*366,y=I+E))+
     scale_y_log10()+
-    # geom_histogram(data=new_inf, aes(x=t, weight=val), binwidth=1/366, fill="green",alpha=0.5) +
+    geom_freqpoly(data=new_inf, aes(x=t*366, weight=val), binwidth=1, fill="green",alpha=0.5) +
     geom_freqpoly(data=intro_times, aes(x= t*366), binwidth=1,color="black") +
     # geom_freqpoly(data=intro_times, aes(x=t-10/366), binwidth=1/366,color=test_col) +
     # scale_x_date()+
@@ -82,8 +94,9 @@ for (rep in seq(0,8)){
     theme_minimal()
   plot(p)
 
+  
   # convert times into dates
-  intro_times$date = as.Date("2020-02-10") + floor(intro_times$t*366)
+  intro_times$date = as.Date("2020-02-14") + floor(intro_times$t*366)
   uni_dates = unique(intro_times$date)
   for (i in seq(1,length(uni_dates))){
     new.positive = data.frame(date=uni_dates[[i]], count=sum(intro_times$date==uni_dates[[i]]), detection="Positive", timeframe=rep)
@@ -97,15 +110,18 @@ for (rep in seq(0,8)){
   
   
   # compute the growth rates from testing
-  average_over = 14
+  average_over = 7
   for (i in seq(start_val,length(positive$date)-average_over, 1)){
     growt_val = 0
     for (j in seq(1,average_over)){
       growt_val = growt_val + log(positive[i+j,"count"]/positive[i+j-1,"count"])/(1/366)
     }
+    
+    time = positive[i,"date"] + average_over/2
+    
     growt_val = growt_val/average_over
-    new.dat = data.frame(time=positive[i,"date"], growth=growt_val, timeframe=rep)
-    new.dat = rbind(new.dat,data.frame(time=positive[i,"date"]+1-0.001, growth=growt_val, timeframe=rep))
+    new.dat = data.frame(time=time, growth=growt_val, timeframe=rep)
+    # new.dat = rbind(new.dat,data.frame(time=positive[i,"date"]+1-0.001, growth=growt_val, timeframe=rep))
     if (first.g){
       growth.testing = new.dat
       first.g = F
@@ -115,6 +131,7 @@ for (rep in seq(0,8)){
   }
   start_val = length(positive$date)+2
   
+  
 }  
 ```
 
@@ -122,12 +139,12 @@ for (rep in seq(0,8)){
 # Get the sampling counts from UW Virology
 
 ```{r smapling}
-mrsi = data.frame(filename="simmulticoal_skygrowth_0",date=as.Date("2020-03-24"))
-mrsi = rbind(mrsi, data.frame(filename="simmultibd_skygrid_0",date=as.Date("2020-03-24")))
+mrsi = data.frame(filename="simmulticoal_skygrowth_0",date=as.Date("2020-04-08"))
+mrsi = rbind(mrsi, data.frame(filename="simmultibd_skygrid_0",date=as.Date("2020-04-08")))
 
 for (rep in seq(1,8)){
-  mrsi = rbind(mrsi, data.frame(filename=paste("simmulticoal_skygrowth_", rep,sep=""),date=as.Date("2020-03-24")))
-  mrsi = rbind(mrsi, data.frame(filename=paste("simmultibd_skygrid_", rep,sep=""),date=as.Date("2020-03-24")))
+  mrsi = rbind(mrsi, data.frame(filename=paste("simmulticoal_skygrowth_", rep,sep=""),date=as.Date("2020-04-08")))
+  mrsi = rbind(mrsi, data.frame(filename=paste("simmultibd_skygrid_", rep,sep=""),date=as.Date("2020-04-08")))
 }
 
 first = T
@@ -183,12 +200,29 @@ for (i in seq(1,length(mrsi$filename))){
       hpdInt.R = HPDinterval(as.mcmc(R))
       hpdInt.R.5 = HPDinterval(as.mcmc(R), prob=0.5)
 
+      # get the percentage of intros
+      name.intro = paste('immigrationRate',floor((j-1)/7)+1,sep="")
+      values.intro = exp(t[,name.intro])
+      # get the approximate transmission rate from the growth rate
+      transmission = values + becoming_uninf
+      # assume that the minimal R0 is .5
+      transmission[which(transmission<becoming_uninf/2)] = becoming_uninf/2
+      # get the ratio of intros
+      ratio.intro = exp(t[,name.intro])/(exp(t[,name.intro]) + transmission)
+      
+      hpd.intro = HPDinterval(as.mcmc(ratio.intro))
+      hpd.intro.5 = HPDinterval(as.mcmc(ratio.intro), prob=0.5)
+
+      
+
       new.dat = data.frame(time=mrsi[i,"date"]-time[j], 
                            growth.mean=median(values), growth.lower=hpdInt[1,'lower'], growth.upper=hpdInt[1,'upper'], 
                            growth.ll=hpdInt.5[1,'lower'], growth.uu=hpdInt.5[1,'upper'], 
                            doubling.mean=median(doubling), doubling.lower=hpdInt.doubling[1,'lower'], doubling.upper=hpdInt.doubling[1,'upper'], 
                            R.lower=hpdInt.R[1,'lower'], R.upper=hpdInt.R[1,'upper'], 
                            R.ll=hpdInt.R.5[1,'lower'], R.uu=hpdInt.R.5[1,'upper'], 
+                           intro.l=hpd.intro[1,'lower'], intro.u=hpd.intro[1,'upper'],
+                           intro.ll=hpd.intro.5[1,'lower'], intro.uu=hpd.intro.5[1,'upper'],
                            method = method, timeframe=timeframe)
       
       new.dat = rbind(new.dat, data.frame(time=mrsi[i,"date"]-time[j+1] +0.01, 
@@ -197,6 +231,8 @@ for (i in seq(1,length(mrsi$filename))){
                           doubling.mean=median(doubling), doubling.lower=hpdInt.doubling[1,'lower'], doubling.upper=hpdInt.doubling[1,'upper'], 
                            R.lower=hpdInt.R[1,'lower'], R.upper=hpdInt.R[1,'upper'], 
                            R.ll=hpdInt.R.5[1,'lower'], R.uu=hpdInt.R.5[1,'upper'], 
+                           intro.l=hpd.intro[1,'lower'], intro.u=hpd.intro[1,'upper'],
+                           intro.ll=hpd.intro.5[1,'lower'], intro.uu=hpd.intro.5[1,'upper'],
                            method = method, timeframe=timeframe))
   
       if (first.growth){
@@ -266,13 +302,13 @@ for (i in seq(1,length(mrsi$filename))){
   }
 }
 
-
 ```
 
 
 
 
 ```{r growth_rates}
+
 p_coal_growth_supp = ggplot(growth) + 
   geom_path(aes(x=time, y=growth.mean, color=timeframe)) +
   geom_ribbon(aes(x=time, ymin=growth.lower, ymax=growth.upper, fill=timeframe), alpha=0.2) +
@@ -289,6 +325,7 @@ p_coal_growth_supp <- p_coal_growth_supp + scale_y_continuous(sec.axis = sec_axi
 
 
 
+
 p_coal_growth = ggplot(growth) + 
   # geom_line(aes(x=time, y=growth.mean, color="genetic data")) +
   
@@ -297,7 +334,8 @@ p_coal_growth = ggplot(growth) +
   
   geom_ribbon(data=dat.bdsky, aes(x=time, ymin=growth.lower, ymax=growth.upper, fill="birth-death skyline"), alpha=0.2) +
   geom_ribbon(data=dat.bdsky, aes(x=time, ymin=growth.ll, ymax=growth.uu, fill="birth-death skyline"), alpha=0.8) +
-  geom_path(data=growth.testing, aes(x=time, y=growth, color="confirmed positive tests")) +
+  geom_path(data=growth.testing, aes(x=time-reporting_delay, y=growth, color="confirmed positive tests")) +
+
   scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
   coord_cartesian(ylim=c(-100,300))+
   scale_color_manual(name="inference using:", values = c("confirmed positive tests"=test_col, "birth-death skyline"=bdsky_col, "coalescent skyline"=coal_col))+
@@ -318,22 +356,26 @@ ggsave(plot=p_coal_growth, file=paste(path, 'figures/sims_growth.png', sep='/'),
 
 ```{r R0}
 
+true_vals = data.frame(R0=c(3.000, 3.000, 3.000, 3.000, 3.000, 2.733, 2.467, 2.200, 1.933, 1.667, 1.400, 1.133, 0.600, 0.600, 0.600, 0.600, 0.600, 0.600, 0.600, 0.600, 0.600, 0.600, 0.600, 0.600, 0.600, 0.600, 0.600, 0.600, 0.600, 0.600, 0.600, 0.600, 0.600, 0.600, 0.600))
+true_vals$times = as.Date('2020-02-14') + seq(1,length(true_vals$R0)*2,2)
+
+
 p_R0 = ggplot(growth) + 
-  # geom_path(aes(x=time, y=R.mean, color="coalesent skyline")) +
   geom_ribbon(aes(x=time, ymin=R.lower, ymax=R.upper, fill="coalesent skyline"), alpha=0.2) +
-  geom_ribbon(aes(x=time, ymin=R.ll, ymax=R.uu, fill="coalesent skyline"), alpha=0.2) +
+  geom_ribbon(aes(x=time, ymin=R.ll, ymax=R.uu, fill="coalesent skyline"), alpha=0.8) +
 
   geom_ribbon(data=dat.bdsky, aes(x=time, ymin=Ne.lower, ymax=Ne.upper, fill="birth-death skyline"), alpha=0.2)+
-    geom_ribbon(data=dat.bdsky, aes(x=time, ymin=Ne.ll, ymax=Ne.uu, fill="birth-death skyline"), alpha=0.8)+
+  geom_ribbon(data=dat.bdsky, aes(x=time, ymin=Ne.ll, ymax=Ne.uu, fill="birth-death skyline"), alpha=0.8)+
+  geom_line(data=true_vals, aes(x=times, y=R0, color="simulated values"))+
 
   ylab("Effective Reproduction Number")+
   scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
-  coord_cartesian(ylim=c(0,7.5))+
+  # coord_cartesian(ylim=c(0,7.5))+
   # geom_vline(xintercept=as.Date('2020-03-05'))+
   # geom_vline(xintercept=as.Date('2020-03-13'))+
   # geom_vline(xintercept=as.Date('2020-03-23'))+
-  scale_color_manual(name="inference using:", values = c("confirmed positive tests"=test_col, "birth-death skyline"=bdsky_col, "coalescent skyline"=coal_col))+
-  scale_fill_manual(name="inference using:", values = c("confirmed positive tests"=test_col, "birth-death skyline"=bdsky_col, "coalescent skyline"=coal_col))+
+  scale_color_manual(name="inference using:", values = c("simulated values"=test_col, "birth-death skyline"=bdsky_col, "coalesent skyline"=coal_col))+
+  scale_fill_manual(name="inference using:", values = c("simulated values"=test_col, "birth-death skyline"=bdsky_col, "coalesent skyline"=coal_col))+
   theme_minimal() +
   facet_wrap(.~timeframe, ncol=3)
 plot(p_R0)
@@ -373,5 +415,44 @@ plot(p)
 
 
 ggsave(plot=p, file=paste(path, 'figures/sims_samp.png', sep='/'), height=9,width=15)
+
+```
+
+
+```{r introductions}
+average_over = 7
+for (rep in seq(0,8)){
+  intro_vals = introductions[which(introductions$timeframe==rep), ]
+  intro_vals$t = floor(intro_vals$t*366)
+  t.vals = unique(intro_vals$t)
+  for (i in seq(1,length(t.vals)-average_over)){
+    values = intro_vals[which(intro_vals$t>=t.vals[[i]] & intro_vals$t<t.vals[[i+average_over]]), "val"]
+    m = mean(values)
+    std = sd(values)
+    new.smooth_intro = data.frame(t=t.vals[[i]]+average_over/2 + end_time, y=m, err=std, timeframe=rep)
+    if (rep==0 && i==1){
+      smooth_intro = new.smooth_intro
+    }else{
+      smooth_intro = rbind(smooth_intro, new.smooth_intro)
+    }
+
+  }
+  
+}
+
+g.perc_intros = ggplot(growth) +
+  geom_ribbon(aes(x=time, ymin=intro.l, ymax=intro.u), alpha=0.2, fill="#3B2668")+
+  geom_ribbon(aes(x=time, ymin=intro.ll, ymax=intro.uu), alpha=0.8, fill="#3B2668")+
+  geom_line(data=smooth_intro, aes(x=t,y=y))+
+  geom_ribbon(data=smooth_intro, aes(x=t,ymin=y-err,ymax=y+err))+
+  theme_minimal()+
+  scale_y_log10()+
+  scale_x_date()+
+  ylab("Percentage of cases due to introductions") +
+  xlab("") +
+  facet_wrap(.~timeframe, ncol=3)
+
+plot(g.perc_intros)
+ggsave(plot=g.perc_intros, file=paste(path, 'figures/sim_intro_percentage.png', sep='/'), height=4,width=7)
 
 ```
