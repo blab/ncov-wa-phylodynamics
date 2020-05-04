@@ -151,7 +151,7 @@ The inferred trends in effective reproduction numbers are consistent with a decr
 
 <figure>
 	<a id="fig:R0"></a>
-	<img style="width:90%;" src="figures/R0.png" alt="">
+	<img style="width:90%;" src="figures/bdsky_smoothingcomp.png" alt="">
 	<figcaption>Figure 4: Effective reproduction number of of SARS-CoV-2 in Washington State.
   The effective reproduction number (on the y-axis) is estimated for intervals of 2 days using a birth-death skyline model ([Stadler et al][Stadler et al]).
   The three different lines show when local transmission was first reported in WA, when initial state wide measures began and when the stay at home order was issued.
