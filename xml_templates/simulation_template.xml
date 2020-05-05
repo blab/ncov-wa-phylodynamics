@@ -1,18 +1,19 @@
 <beast version='2.0' namespace='master:master.model:master.steppers:master.conditions:master.postprocessors:master.outputs'>
     <run spec='InheritanceTrajectory'
-        verbosity='2' samplePopulationSizes="true" simulationTime="0.1530">
+        verbosity='2' samplePopulationSizes="true" simulationTime="0.1853">
 
         <model spec='Model'>
             <population spec='Population' id='E' populationName='E'/>
             <population spec='Population' id='Iinit' populationName='Iinit'/>
+            <population spec='Population' id='IntroCount' populationName='IntroCount'/>
             <population spec='Population' id='I' populationName='I'/>
             <population spec='Population' id='R' populationName='R'/>
             <population spec='Population' id='samp' populationName='samp'/>
             <population spec='Population' id='samp2' populationName='samp2'/>
 
-            <reactionGroup spec='ReactionGroup' reactionGroupName='Infection'>
-              <reaction spec='Reaction' rate="100000000">
-                Iinit:1 -> 2E:1
+            <reactionGroup spec='ReactionGroup' reactionGroupName='Introduction'>
+              <reaction spec='Reaction' rate="500">
+                Iinit:1 -> Iinit:1 + E:1 + IntroCount
               </reaction>
             </reactionGroup>
 
@@ -25,14 +26,14 @@
          </reactionGroup>
 
          <reactionGroup spec='ReactionGroup' reactionGroupName='Recovery'>
-          <reaction spec='Reaction' rate="58.5600">
+          <reaction spec='Reaction' rate="51.2400">
             I -> R
           </reaction>
           </reactionGroup>
 
 
           <reactionGroup spec='ReactionGroup' reactionGroupName='Sampling'>
-           <reaction spec='Reaction' rate="14.6400">
+           <reaction spec='Reaction' rate="21.9600">
              I -> samp
            </reaction>
          </reactionGroup>

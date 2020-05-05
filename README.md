@@ -149,7 +149,7 @@ The inferred trends in effective reproduction numbers are consistent with a decr
 
 <figure>
 	<a id="fig:R0"></a>
-	<img style="width:90%;" src="figures/bdsky_smoothingcomp.png" alt="">
+	<img style="width:90%;" src="figures/bdsky_R0.png" alt="">
 	<figcaption>Figure 4: Effective reproduction number of of SARS-CoV-2 in Washington State.
   The effective reproduction number (on the y-axis) is estimated for intervals of 2 days using a birth-death skyline model ([Stadler et al][Stadler et al]).
   The three different lines show when local transmission was first reported in WA, when initial state wide measures began and when the stay at home order was issued.
@@ -163,7 +163,7 @@ While there is intensive testing for COVID-19 in Washington State since the begi
 Using the coalescent, we can estimate past population dynamics while conditioning on sampling, which means that we do not directly consider the number of samples through time as informative about the population dynamics.
 
 Using a coalescent skyline approach, we test whether there are significant transmission dynamics that are not captured in the number of positive tests through time.
-As shown in the figure below, the effective population size estimates largely follow the number of cases through time when we assume a average time difference of 5 days between infection and onset of suymptoms.
+As shown in the figure below, the effective population size estimates largely follow the number of cases through time when we assume a average time difference of 5 days between infection and onset of symptoms.
 The effective population size trends for the D and G clade are, however, differ greatly.
 The effective population size estimated from the D clade peaks almost 2 weeks before the G clade.
 At that time, the effective population size of the D clade was already declining for a while.
@@ -221,7 +221,7 @@ This increase is likely driven by a decrease in the estimated local transmission
 
 <figure>
 	<a id="fig:perc_intro"></a>
-	<img style="width:90%;" src="figures/sample_percentage.png" alt="">
+	<img style="width:90%;" src="figures/intro_percentage.png" alt="">
 	<figcaption>Figure 2: Estimated percentage of new cases due to introductions.
   </figcaption>
 </figure>
@@ -241,7 +241,7 @@ We find that the observed patterns are very similar to those expected for 1% of 
 
 <figure>
 	<a id="fig:perc_intro"></a>
-	<img style="width:90%;" src="figures/sample_intros.png" alt="">
+	<img style="width:90%;" src="figures/intro_clustersampling.png" alt="">
 	<figcaption>Figure 3: Probability of catching new introductions with additional samples.
   </figcaption>
 </figure>
@@ -292,31 +292,31 @@ Particularly since measure to control local spread also make it less likely for 
 
 ## Supplementary Material
 
-### Comparison of inferred rates when using different amounts of additional samples
+### R0 estimates using the coalescent and comparison to birth-death estimates
 
-As mentioned above, we considered all samples for UW Virology to be random samples from the population.
-We also added samples from WADoH and from the Seattle Flu Study, once adding 50 and once 150 samples.
-We here compare how the inference of effective population sizes depend on using more or less samples from these two sources.
-As shown in the figure below, adding more samples leads to a reduction in the inferred effective population size around March 15th, with otherwise similar results.
-Every analysis infers a rapid growth until the beginning of March and then a flattening of the trend.
+<figure>
+	<a id="fig:trajectory_coal"></a>
+	<img style="width:90%;" src="figures/coal_R0.png" alt="">
+	<figcaption>Figure S1: Estimates of R0 using the coalescent.
+  </figcaption>
+</figure>
 
+<figure>
+	<a id="fig:trajectory_coal"></a>
+	<img style="width:90%;" src="figures/R0_comparison.png" alt="">
+	<figcaption>Figure S2: Comparison between the effective reproduction number estimates for different datasets and using the coalescent or birth-death model.
+  </figcaption>
+</figure>
+
+### estimates of effective population sizes for the different clades for the different clades using different priors
 
 <figure>
 	<a id="fig:trajectory_coal"></a>
 	<img style="width:90%;" src="figures/coal_smoothingcomp.png" alt="">
-	<figcaption>Figure S1: Comparison between effective population size estimate for different datasets and smoothing priors.
+	<figcaption>Figure S3: Comparison between the effective reproduction number estimates for different datasets and using the coalescent or birth-death model.
   </figcaption>
 </figure>
 
-We performed the same for the birth-death skyline analysis.
-Both analysis show a drastic reduction in the effective reproduction number by mid March, but slightly differ in how rapid this down turn took place.
-
-<figure>
-	<a id="fig:trajectory_coal"></a>
-	<img style="width:90%;" src="figures/bdsky_smoothingcomp.png" alt="">
-	<figcaption>Figure S2: Comparison between the effective reproduction number estimates for different datasets.
-  </figcaption>
-</figure>
 
 
 ### Effect of heterogeneous offspring distributions on parameter estimates
@@ -340,6 +340,6 @@ This bias always lead to an overestimation, not underestimation, of the growth r
 <figure>
 	<a id="fig:R0"></a>
 	<img style="width:90%;" src="figures/sims_growth.png" alt="">
-	<figcaption>Figure 4: Comparison between growth rate estimates using the birth-death and coalescent skyline and testing data from simulated data.
+	<figcaption>Figure S4: Comparison between growth rate estimates using the birth-death and coalescent skyline and testing data from simulated data.
   </figcaption>
 </figure>

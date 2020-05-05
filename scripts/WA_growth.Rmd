@@ -47,6 +47,10 @@ generation_time = 1/becoming_uninf
 reporting_delay = generation_time/2 * 366
 
 # define the colors for bd and coal methods
+both_clades_col = "#0072B2"
+d_clade_col = "#6DC1B3"
+g_clade_col = "#F6C445"
+
 coal_col = "#56B4E9"
 bdsky_col = "#009E73"
 test_col = "#D55E00"
@@ -56,30 +60,30 @@ vline1 = as.Date('2020-02-29') # report of community transmission in the greater
 vline2 = as.Date('2020-03-11') # intial official actions to combat coronavirus
 vline3 = as.Date('2020-03-23') # stay home stay safe order
 
+# 
+# # combine runs
+# logs = list.files(path=paste(path, "out", sep="/"), pattern="*rep0.log", full.names=T)
+# for (i in seq(1,length(logs))){
+#     in_command <- " -b 50 -log"
+#     for (j in seq(0,2)){
+#       in_command = paste(in_command, " ", gsub("rep0", paste("rep", j,sep=""), logs[i]), sep="")
+#     }
+#     out_command = gsub("_rep0", "", logs[i])
+#     # combine the trees
+#     system(paste("/Applications/BEAST\\ 2.6.0/bin/logcombiner", in_command, "-o", out_command, "", sep=" "))
+# }
 
-# combine runs
-logs = list.files(path=paste(path, "out", sep="/"), pattern="*rep0.log", full.names=T)
-for (i in seq(1,length(logs))){
-    in_command <- " -b 50 -log"
-    for (j in seq(0,2)){
-      in_command = paste(in_command, " ", gsub("rep0", paste("rep", j,sep=""), logs[i]), sep="")
-    }
-    out_command = gsub("_rep0", "", logs[i])
-    # combine the trees
-    system(paste("/Applications/BEAST\\ 2.6.0/bin/logcombiner", in_command, "-o", out_command, "", sep=" "))
-}
-
-# combine runs
-logs = list.files(path=paste(path, "out", sep="/"), pattern="*rep0.*.trees", full.names=T)
-for (i in seq(1,length(logs))){
-    in_command <- " -b 10 -log"
-    for (j in seq(0,2)){
-      in_command = paste(in_command, " ", gsub("rep0", paste("rep", j,sep=""), logs[i]), sep="")
-    }
-    out_command = gsub("_rep0", "", logs[i])
-    # combine the trees
-    system(paste("/Applications/BEAST\\ 2.6.0/bin/logcombiner", in_command, "-o", out_command, "", sep=" "))
-}
+# # combine runs
+# logs = list.files(path=paste(path, "out", sep="/"), pattern="*rep0.*.trees", full.names=T)
+# for (i in seq(1,length(logs))){
+#     in_command <- " -b 50 -log"
+#     for (j in seq(0,2)){
+#       in_command = paste(in_command, " ", gsub("rep0", paste("rep", j,sep=""), logs[i]), sep="")
+#     }
+#     out_command = gsub("_rep0", "", logs[i])
+#     # combine the trees
+#     system(paste("/Applications/BEAST\\ 2.6.0/bin/logcombiner", in_command, "-o", out_command, "", sep=" "))
+# }
 
 
 ```
@@ -185,6 +189,7 @@ for (i in seq(1,length(mrsi$filename))){
       # get the percentage of intros
       name.intro = paste('immigrationRate',floor((j-1)/7)+1,sep="")
       values.intro = exp(t[,name.intro])
+      
       # get the approximate transmission rate from the growth rate
       transmission = values + becoming_uninf
       # assume that the minimal R0 is .5
@@ -325,13 +330,10 @@ p = ggplot(dat[which(dat$method=="correlated Ne trajectories"),]) +
   geom_ribbon(aes(x=time, ymin=Ne.lower*transform, ymax=Ne.upper*transform, fill=timeframe), alpha=0.2)+
   geom_ribbon(aes(x=time, ymin=Ne.ll*transform, ymax=Ne.uu*transform, fill=timeframe), alpha=0.8)+
   scale_x_date(limits=c(as.Date('2020-01-31'), max(mrsi$date)))  +
-  scale_color_OkabeIto()+
-  scale_fill_OkabeIto()+
-  # scale_color_manual(name="data source", values=c("#56B4E9"))+
-  # scale_fill_manual(name="data source", values=c("#56B4E9"))+
+  scale_fill_manual(name="Clade:", values = c("both clades"=both_clades_col, "D clade"=d_clade_col, "G clade"=g_clade_col))+
   theme_minimal() +
-  # theme(legend.position = "none")  +
-  scale_y_continuous(name="number of positive tests", sec.axis = sec_axis(~ 1/transform*., name = "effective population size")) +
+  scale_y_continuous(name="number of cases", sec.axis = sec_axis(~ 1/transform*., name = "effective population size")) +
+  theme( axis.title.y.right = element_text( angle = 90))+
   coord_cartesian(ylim=c(0.01,1000)) +
   xlab("")
 plot(p)
@@ -344,7 +346,7 @@ p = ggplot(dat[which(dat$method=="correlated Ne trajectories" & dat$timeframe==t
   geom_errorbar(aes(x=nr_cases, ymin=Ne.lower, ymax=Ne.upper, color=time)) +
   theme_minimal() +
   geom_smooth(aes(x=nr_cases, y=Ne.mean), method="lm")+
-  xlab("number of symptom onset") +
+  xlab("number of cases") +
   ylab("effective population size")+
   scale_y_log10()+
   scale_x_log10()
@@ -362,8 +364,7 @@ p = ggplot(dat) +
   geom_ribbon(aes(x=time, ymin=log(Ne.ll), ymax=log(Ne.uu), fill=timeframe), alpha=0.8)+
   facet_wrap(method~., ncol=1) +
   scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
-  scale_color_OkabeIto()+
-  scale_fill_OkabeIto()+
+  scale_fill_manual(name="Clade:", values = c("both clades"=both_clades_col, "D clade"=d_clade_col, "G clade"=g_clade_col))+
   scale_y_continuous(breaks=seq(-6.9078,6.9078,2.3026), labels=c(0.001,0.010,0.1,1,10,100,1000),sec.axis = sec_axis(~ .,breaks=seq(-6.9078,6.9078,2.3026), labels=c(0.001,0.010,0.1,1,10,100,1000), name = "effective population size")) +
   theme_minimal() +
   # theme(legend.position = "none") + 
@@ -384,20 +385,37 @@ p = ggplot(data=dat.bdsky) +
       geom_text(aes(x=vline3, label="stay home stay healthy\nby state government", y=text_height), colour="black", angle=90, text=element_text(size=8)) +
   geom_ribbon(data=dat.bdsky, aes(x=time, ymin=Ne.lower, ymax=Ne.upper, fill=timeframe), alpha=0.2) +
   geom_ribbon(data=dat.bdsky, aes(x=time, ymin=Ne.ll, ymax=Ne.uu, fill=timeframe), alpha=0.8) +
-  facet_wrap(method~., ncol=1) +
   scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
-  scale_color_OkabeIto()+
-  scale_fill_OkabeIto()+
-
-  # scale_y_continuous(breaks=seq(-6.9078,6.9078,2.3026), labels=c(0.001,0.010,0.1,1,10,100,1000),sec.axis = sec_axis(~ .,breaks=seq(-6.9078,6.9078,2.3026), labels=c(0.001,0.010,0.1,1,10,100,1000), name = "effective population size")) +
+  scale_fill_manual(name="Clade:", values = c("both clades"=both_clades_col, "D clade"=d_clade_col, "G clade"=g_clade_col))+
   theme_minimal() +
   # theme(legend.position = "none") + 
   xlab("") +
-  ylab("effective reproduction number")
-  # coord_cartesian(ylim=c(-6.9078,6.9078))
+  ylab("effective reproduction number")+
+  coord_cartesian(ylim=c(0,6))
 plot(p)
+ggsave(plot=p, file=paste(path, 'figures/bdsky_R0.png', sep='/'), height=5,width=12)
 
-ggsave(plot=p, file=paste(path, 'figures/bdsky_smoothingcomp.png', sep='/'), height=7,width=12)
+
+
+p = ggplot(data=growth[which(growth$method=="correlated Ne trajectories"),]) + 
+  geom_vline(xintercept=vline1, alpha=0.5)+
+  geom_vline(xintercept=vline2, alpha=0.5)+
+  geom_vline(xintercept=vline3, alpha=0.5)+
+  geom_text(aes(x=vline1, label="local spread\nannounced", y=text_height), colour="black", angle=90, text=element_text(size=8)) +
+    geom_text(aes(x=vline2, label="initial measures taken\nby state government", y=text_height), colour="black", angle=90, text=element_text(size=8)) +
+      geom_text(aes(x=vline3, label="stay home stay healthy\nby state government", y=text_height), colour="black", angle=90, text=element_text(size=8)) +
+  
+  geom_ribbon(aes(x=time, ymin=R.lower, ymax=R.upper, fill=timeframe), alpha=0.2) +
+  geom_ribbon(aes(x=time, ymin=R.ll, ymax=R.uu, fill=timeframe), alpha=0.8) +
+  scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
+  scale_fill_manual(name="Clade:", values = c("both clades"=both_clades_col, "D clade"=d_clade_col, "G clade"=g_clade_col))+
+  theme_minimal() +
+  # theme(legend.position = "none") + 
+  xlab("") +
+  ylab("effective reproduction number") +
+  coord_cartesian(ylim=c(0,6))
+plot(p)
+ggsave(plot=p, file=paste(path, 'figures/coal_R0.png', sep='/'), height=5,width=12)
 
 
 ```
@@ -406,7 +424,7 @@ ggsave(plot=p, file=paste(path, 'figures/bdsky_smoothingcomp.png', sep='/'), hei
 
 ```{r ltt}
 
-filename = paste('multicoal_skygrid_',length(timeframename), sep="")
+filename = 'multicoal_skygrowth_1'
 
 # read in the log file 
 t = read.table(paste(path,'/out/', filename, '.log',sep=""), sep="\t", header=T)
@@ -435,11 +453,12 @@ for (j in seq(2,length(ltt))){
   
   max_val = max(ltt[,j])
   
+  # get the clade
+  clade_label = clusters[which(clusters$filename==filename & clusters$number==gsub("X","",labels(ltt)[[2]][[j]])),"clade"][[1]]
   
-
   for (k in seq(1,length(ltt$day))){
     new.dat = data.frame(time = mrsi[which(mrsi$filename==filename), "date"] - offset -ltt[k,"day"],
-                         val = ltt[k,j], val_offset = current_max + max_val/2, cluster = as.numeric(gsub("X","",labels(ltt)[[2]][j])))
+                         val = ltt[k,j], val_offset = current_max + max_val/2, cluster = as.numeric(gsub("X","",labels(ltt)[[2]][j])), clade=paste(clade_label, "clade"))
     
     if (first){
       ltt.dat = new.dat
@@ -448,29 +467,30 @@ for (j in seq(2,length(ltt))){
       ltt.dat = rbind(ltt.dat, new.dat)
     }
   }
-  
-  
-  
   current_max = current_max + max_val + plot_offset
 }
 
+segment.dat = data.frame(x=as.Date("2020-02-7"), xend=as.Date("2020-02-7"), y=250, yend=350)
+segment.dat = rbind(segment.dat, data.frame(x=as.Date("2020-02-7"), xend=as.Date("2020-02-6"), y=250, yend=250))
+segment.dat = rbind(segment.dat, data.frame(x=as.Date("2020-02-7"), xend=as.Date("2020-02-6"), y=300, yend=300))
+segment.dat = rbind(segment.dat, data.frame(x=as.Date("2020-02-7"), xend=as.Date("2020-02-6"), y=350, yend=350))
 
 
-ltt.dat$origin = "Europe"
-
-ltt.dat[which(ltt.dat$cluster==ltt.dat[which.max(ltt.dat$val),"cluster"]), "origin"] = "China"
-
-p = ggplot(ltt.dat) + geom_ribbon(aes(x=time, ymin=val_offset-val/2, ymax=val_offset+val/2, group=cluster, fill=origin)) +
+p = ggplot(ltt.dat) + geom_ribbon(aes(x=time, ymin=val_offset-val/2, ymax=val_offset+val/2, group=cluster, fill=clade)) +
   scale_x_date(limits=c(as.Date('2020-02-01'), max(mrsi$date)))  +
   theme_minimal() +
-  geom_vline(xintercept=vline1)+
-  geom_vline(xintercept=vline2)+
-  geom_vline(xintercept=vline3)+
-  scale_fill_manual(values=c("#aa381e", "#003399"))+
-  ggtitle('Lineages through time of different local outbreak clusters') +
-  xlab("")
+  scale_fill_manual(name="Clade:", values = c("both clades"=both_clades_col, "D clade"=d_clade_col, "G clade"=g_clade_col))+
+  xlab("") +
+  scale_y_continuous(breaks=NULL) +
+  geom_segment(data=segment.dat, aes(x=x, xend=xend, y=y, yend=yend)) +
+  geom_text(aes(x=as.Date("2020-02-4"), label="0", y=250), colour="black", text=element_text(size=8))+
+  geom_text(aes(x=as.Date("2020-02-4"), label="50", y=300), colour="black", text=element_text(size=8))+
+  geom_text(aes(x=as.Date("2020-02-4"), label="100", y=350), colour="black", text=element_text(size=8))+
+  geom_text(aes(x=as.Date("2020-02-8"), label="nr lineages in cluster", y=300), angle=90, colour="black", text=element_text(size=8)) +
+  ylab("")
+
 plot(p)
-ggsave(plot=p, file=paste(path, 'figures/coal_ltt.png', sep='/'), height=5,width=9)
+ggsave(plot=p, file=paste(path, 'figures/coal_ltt.png', sep='/'), height=5,width=12)
 
 uni_times = unique(ltt.dat$time)
 ltt.dat$rel = 0
@@ -482,10 +502,10 @@ for (i in seq(1,length(uni_times))){
   ltt.dat[ind,"rel"] = ltt.dat[ind, "min_val"]/sum(ltt.dat[ind, "min_val"])
 }
 
-ltt.dat[which(ltt.dat$rel==0), "rel"] =0.000001
+ltt.dat[which(ltt.dat$rel==0), "rel"] =0.001
 p = ggplot(ltt.dat[which(!is.nan(ltt.dat$rel)),]) + 
-  geom_area(aes(x=time,y=rel,fill=origin, group=cluster),position="stack", stat="identity") +
-  scale_fill_manual(values=c("#aa381e", "#003399")) + 
+  geom_area(aes(x=time,y=rel,fill=clade, group=cluster),position="stack", stat="identity") +
+  scale_fill_manual(name="Clade:", values = c("both clades"=both_clades_col, "D clade"=d_clade_col, "G clade"=g_clade_col))+
   ylab("relative number of lineages") +
   xlab("")+
   theme_minimal()
@@ -497,47 +517,27 @@ ggsave(plot=p, file=paste(path, 'figures/coal_ltt_rel.png', sep='/'), height=5,w
 ```
 
 ```{r growth_rates}
-p_coal_growth_supp = ggplot(growth) + 
-  geom_path(aes(x=time, y=growth.mean, color=timeframe)) +
-  geom_ribbon(aes(x=time, ymin=growth.lower, ymax=growth.upper, fill=timeframe), alpha=0.2) +
-  geom_path(data=growth.testing, aes(x=time, y=growth, color="testing")) +
-  facet_wrap(method~., ncol=1) +
-  scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
-  coord_cartesian(ylim=c(-150,300))+
-  scale_color_OkabeIto()+
-  scale_fill_OkabeIto()+
-  theme_minimal()
-doubling_labels = c(-1,-2,-6,6,2,1)
-p_coal_growth_supp <- p_coal_growth_supp + scale_y_continuous(sec.axis = sec_axis(~ .,breaks=round(log(2)/doubling_labels*365), labels=doubling_labels, name = "doubling times in days"))
-ggsave(plot=p_coal_growth_supp, file=paste(path, 'figures/coal_growth_supp.pdf', sep='/'), height=5,width=9)
-
-
-
-
-
-p_coal_growth = ggplot(growth[which(growth$method=="correlated Ne trajectories"),]) + 
+p_coal_growth = ggplot(growth[which(growth$method=="correlated Ne trajectories" & growth$timeframe=="both clades"),]) + 
   geom_ribbon(aes(x=time, ymin=growth.lower, ymax=growth.upper, fill="coalescent skyline"), alpha=0.2) +
   geom_ribbon(aes(x=time, ymin=growth.ll, ymax=growth.uu, fill="coalescent skyline"), alpha=0.8) +
   
-  geom_ribbon(data=dat.bdsky, aes(x=time, ymin=growth.lower, ymax=growth.upper, fill="birth-death skyline"), alpha=0.2) +
-  geom_ribbon(data=dat.bdsky, aes(x=time, ymin=growth.ll, ymax=growth.uu, fill="birth-death skyline"), alpha=0.8) +
-
-  
-  geom_path(data=growth.testing, aes(x=time, y=growth, color="confirmed positive tests")) +
+  geom_ribbon(data=dat.bdsky[which(dat.bdsky$timeframe=="both clades"),], aes(x=time, ymin=growth.lower, ymax=growth.upper, fill="birth-death skyline"), alpha=0.2) +
+  geom_ribbon(data=dat.bdsky[which(dat.bdsky$timeframe=="both clades"),], aes(x=time, ymin=growth.ll, ymax=growth.uu, fill="birth-death skyline"), alpha=0.8) +
+  geom_path(data=growth.testing, aes(x=time-reporting_delay, y=growth, color="confirmed positive tests\nby time of symptom onset\nminus 5 days")) +
   scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
   coord_cartesian(ylim=c(-100,300))+
 
-  scale_color_manual(name="inference using:", values = c("confirmed positive tests"=test_col, "birth-death skyline"=bdsky_col, "coalescent skyline"=coal_col))+
-  scale_fill_manual(name="inference using:", values = c("confirmed positive tests"=test_col, "birth-death skyline"=bdsky_col, "coalescent skyline"=coal_col))+
+  scale_color_manual(name="computed using:", values = c("confirmed positive tests\nby time of symptom onset\nminus 5 days"=test_col, "birth-death skyline"=bdsky_col, "coalescent skyline"=coal_col))+
+  scale_fill_manual(name="inferred using:", values = c("confirmed positive tests\nby time of symptom onset\nminus 5 days"=test_col, "birth-death skyline"=bdsky_col, "coalescent skyline"=coal_col))+
   xlab("")+
-  theme_minimal() +
-  facet_wrap(.~timeframe, ncol=3)
-  
+  theme_minimal() 
 doubling_labels = c(-1,-2,-6,6,2,1)
-p_coal_growth <- p_coal_growth + scale_y_continuous(sec.axis = sec_axis(~ .,breaks=round(log(2)/doubling_labels*365), labels=doubling_labels, name = "doubling times in days")) + ylab("growth rate per year")
+p_coal_growth <- p_coal_growth + scale_y_continuous(sec.axis = sec_axis(~ .,breaks=round(log(2)/doubling_labels*365), labels=doubling_labels, name = "doubling times in days")) + ylab("growth rate per year") +
+    theme( axis.title.y.right = element_text( angle = 90))
+
 
 plot(p_coal_growth)
-ggsave(plot=p_coal_growth, file=paste(path, 'figures/coal_growth.png', sep='/'), height=6,width=15)
+ggsave(plot=p_coal_growth, file=paste(path, 'figures/growth_rates.png', sep='/'), height=5,width=11)
 
 
 ```
@@ -552,99 +552,99 @@ p_R0 = ggplot(growth[which(growth$method=="correlated Ne trajectories"),]) +
   
   ylab("Effective Reproduction Number")+
   scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
-  coord_cartesian(ylim=c(0,7.5))+
+  coord_cartesian(ylim=c(0,6))+
   geom_vline(xintercept=vline1)+
   geom_vline(xintercept=vline2)+
   geom_vline(xintercept=vline3)+
-  scale_color_manual(name="inference using:", values = c("confirmed positive tests"=test_col, "birth-death skyline"=bdsky_col, "coalescent skyline"=coal_col))+
   scale_fill_manual(name="inference using:", values = c("confirmed positive tests"=test_col, "birth-death skyline"=bdsky_col, "coalescent skyline"=coal_col))+
   theme_minimal()+
-  facet_wrap(.~timeframe, ncol=3)
+  facet_wrap(.~timeframe, ncol=1) +
+  xlab("")
 
 
 plot(p_R0)
 
-ggsave(plot=p_R0, file=paste(path, 'figures/R0.png', sep='/'), height=6,width=15)
+ggsave(plot=p_R0, file=paste(path, 'figures/R0_comparison.png', sep='/'), height=8,width=12)
 
 
 ```
 
 ```{r sampling_proportions}
 
-p_R0_bdsky = 
-  ggplot(dat.bdsky[which(dat.bdsky$timeframe==timeframe[[2]]),]) + 
-  geom_line(aes(x=time, y=exp(Ne.mean), color=timeframe)) +
-  geom_ribbon(aes(x=time, ymin=exp(Ne.lower), ymax=exp(Ne.upper), fill=timeframe), alpha=0.2)+
-  scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
-  geom_vline(xintercept=vline1)+
-  geom_vline(xintercept=vline2)+
-  geom_vline(xintercept=vline3)+
-  scale_color_manual(name="data source", values=c("#D55E00", "#56B4E9"))+
-  facet_wrap(timeframe~., ncol=1)+
-  theme_minimal() +
-  theme(legend.position = "none")
-  coord_cartesian(ylim=c(0,7.5))
-plot(p_R0_bdsky)
-
-ggsave(plot=p, file=paste(path, 'figures/bdsky_skygrid.pdf', sep='/'), height=5,width=9)
-
-p = ggplot(dat.bdsky) + geom_line(aes(x=time, y=exp(samp.mean), color=timeframe)) +
-  geom_ribbon(aes(x=time, ymin=exp(samp.lower), ymax=exp(samp.upper), fill=timeframe), alpha=0.2)+
-  scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
-  geom_vline(xintercept=vline1)+
-  geom_vline(xintercept=vline2)+
-  geom_vline(xintercept=vline3)+
-  scale_color_OkabeIto()+
-  scale_fill_OkabeIto()+
-  facet_wrap(timeframe~., ncol=1)+
-  theme_minimal() +
-  coord_cartesian(ylim=c(0,1))
-plot(p)
-
-ggsave(plot=p, file=paste(path, 'figures/bdsky_sampling.pdf', sep='/'), height=5,width=9)
+# p_R0_bdsky = 
+#   ggplot(dat.bdsky[which(dat.bdsky$timeframe==timeframe[[1]]),]) + 
+#   geom_line(aes(x=time, y=exp(Ne.mean), color=timeframe)) +
+#   geom_ribbon(aes(x=time, ymin=exp(Ne.lower), ymax=exp(Ne.upper), fill=timeframe), alpha=0.2)+
+#   scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
+#   geom_vline(xintercept=vline1)+
+#   geom_vline(xintercept=vline2)+
+#   geom_vline(xintercept=vline3)+
+#   scale_color_manual(name="data source", values=c("#D55E00", "#56B4E9"))+
+#   facet_wrap(timeframe~., ncol=1)+
+#   theme_minimal() +
+#   theme(legend.position = "none")
+#   coord_cartesian(ylim=c(0,7.5))
+# plot(p_R0_bdsky)
+# 
+# ggsave(plot=p, file=paste(path, 'figures/bdsky_skygrid.pdf', sep='/'), height=5,width=9)
+# 
+# p = ggplot(dat.bdsky) + geom_line(aes(x=time, y=exp(samp.mean), color=timeframe)) +
+#   geom_ribbon(aes(x=time, ymin=exp(samp.lower), ymax=exp(samp.upper), fill=timeframe), alpha=0.2)+
+#   scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
+#   geom_vline(xintercept=vline1)+
+#   geom_vline(xintercept=vline2)+
+#   geom_vline(xintercept=vline3)+
+#   scale_color_OkabeIto()+
+#   scale_fill_OkabeIto()+
+#   facet_wrap(timeframe~., ncol=1)+
+#   theme_minimal() +
+#   coord_cartesian(ylim=c(0,1))
+# plot(p)
+# 
+# ggsave(plot=p, file=paste(path, 'figures/bdsky_sampling.pdf', sep='/'), height=5,width=9)
 
 ```
 
 # Compares the sampling probability to the number of sequences compared to the number of positives cases from UW Virology
 
 ```{r sampling prob}
-sampling_times = read.table(paste(path,'/results/sampling_times.tsv',sep="/"), sep="\t", header=T)
-
-sampling_times$Date = as.Date(sampling_times$Date)
-uni_dates = unique(c(sampling_times$Date, positive$date))
-for (i in seq(1,length(uni_dates))){
-  ind1 = which(sampling_times$Date==uni_dates[[i]])
-  ind2 = which(positive$date==uni_dates[[i]])
-  count1=0
-  count2=0
-  if (length(ind1)==1){
-    count1=sampling_times[ind1,"number"]
-  }
-  if (length(ind2)==1){
-    count2=positive[ind2,"count"]
-  }
-  new.dat = data.frame(date=uni_dates[[i]], seq=count1,pcr=count2, ratio=count1/(count1+count2))
-  if (i==1){
-    test.comp = new.dat
-  }else{
-    test.comp = rbind(test.comp,new.dat)
-  }
-}
-
-p.test_comp = ggplot(test.comp) +
-  geom_line(aes(x=date,y=ratio)) +
-    scale_x_date(limits=c(as.Date('2020-02-15'), max(mrsi$date)))  +
-  theme_minimal() + xlab("")+
-  ylab("percentage of confirmed cases sequenced")
-
-
-plot(p.test_comp)
+# sampling_times = read.table(paste(path,'/results/sampling_times.tsv',sep="/"), sep="\t", header=T)
+# 
+# sampling_times$Date = as.Date(sampling_times$Date)
+# uni_dates = unique(c(sampling_times$Date, positive$date))
+# for (i in seq(1,length(uni_dates))){
+#   ind1 = which(sampling_times$Date==uni_dates[[i]])
+#   ind2 = which(positive$date==uni_dates[[i]])
+#   count1=0
+#   count2=0
+#   if (length(ind1)==1){
+#     count1=sampling_times[ind1,"number"]
+#   }
+#   if (length(ind2)==1){
+#     count2=positive[ind2,"count"]
+#   }
+#   new.dat = data.frame(date=uni_dates[[i]], seq=count1,pcr=count2, ratio=count1/(count1+count2))
+#   if (i==1){
+#     test.comp = new.dat
+#   }else{
+#     test.comp = rbind(test.comp,new.dat)
+#   }
+# }
+# 
+# p.test_comp = ggplot(test.comp) +
+#   geom_line(aes(x=date,y=ratio)) +
+#     scale_x_date(limits=c(as.Date('2020-02-15'), max(mrsi$date)))  +
+#   theme_minimal() + xlab("")+
+#   ylab("percentage of confirmed cases sequenced")
+# 
+# 
+# plot(p.test_comp)
 
 ```
 
 ```{r prevalence_epiinf}
-source(paste(path, 'scripts/plot_Traj.R', sep="/"))
-plotTraj(fileNames=list(paste(path, 'out/BD_epi.traj', sep="/")),useCumulativeTrajectories=TRUE)
+# source(paste(path, 'scripts/plot_Traj.R', sep="/"))
+# plotTraj(fileNames=list(paste(path, 'out/BD_epi.traj', sep="/")),useCumulativeTrajectories=TRUE)
 
 ```
 
@@ -703,16 +703,15 @@ levels(prev$method) <- c("correlated Ne's", "uncorrelated Ne's", "correlated Ne 
 prev$method <- factor(prev$method, levels =c("correlated Ne's", "correlated Ne trajectories", "uncorrelated Ne's"))
 
 p = ggplot()+
-  # geom_histogram(data=testing, aes(x=date-5,y=count), sta="identity")+
-  geom_ribbon(data=prev[which(prev$method=="correlated Ne trajectories" & prev$timeframe==timeframename[[2]]),],aes(x=time, ymin=I.lower, ymax=I.upper, fill=timeframe), alpha=0.2)+
-  geom_ribbon(data=prev[which(prev$method=="correlated Ne trajectories" & prev$timeframe==timeframename[[2]]),],aes(x=time, ymin=I.ll, ymax=I.uu, fill=timeframe), alpha=0.8)+
+  geom_ribbon(data=prev[which(prev$method=="correlated Ne trajectories" & prev$timeframe==timeframename[[1]]),],aes(x=time, ymin=I.lower, ymax=I.upper, fill=timeframe), alpha=0.2)+
+  geom_ribbon(data=prev[which(prev$method=="correlated Ne trajectories" & prev$timeframe==timeframename[[1]]),],aes(x=time, ymin=I.ll, ymax=I.uu, fill=timeframe), alpha=0.8)+
   scale_x_date(limits=c(as.Date('2020-02-01'), max(mrsi$date)))  +
   scale_y_continuous(sec.axis = sec_axis(~ .), name = "Prevalence") +
   theme_minimal() +
   theme(legend.position = "none")  +
   scale_color_manual(name="data source", values=c("#56B4E9"))+
   scale_fill_manual(name="data source", values=c("#56B4E9"))+
-  coord_cartesian(ylim=c(1,200))+
+  coord_cartesian(ylim=c(1,2000))+
   scale_y_log10()
 plot(p)
 ggsave(plot=p, file=paste(path, 'figures/coal_prevalence.png', sep='/'), height=3,width=9)
@@ -723,7 +722,7 @@ ggsave(plot=p, file=paste(path, 'figures/coal_prevalence.png', sep='/'), height=
 
 ```{R introductions}
 
-nrs = clusters[which(clusters$filename=="multicoal_skygrid_2"),]
+nrs = clusters[which(clusters$filename=="multicoal_skygrid_1"),]
 # keeps track of the membership of samples
 cluster_member = c()
 for (i in seq(1,length(nrs$number))){
@@ -764,15 +763,13 @@ g.nrintros = ggplot() +
   ylab("Probability than new sample reveals new introduction") +
   xlab("Number of samples") +
   scale_color_manual(name="percentage of cases\ndue to introductions", 
-                     values=c("#F9C988", "#71BD89", "#24A897", "#3B2668"))
+                     values=c("#F9C988", "#71BD89", "#24A897", both_clades_col))
 plot(g.nrintros)
-ggsave(plot=g.nrintros, file=paste(path, 'figures/sample_intros.png', sep='/'), height=4,width=7)
+ggsave(plot=g.nrintros, file=paste(path, 'figures/intro_clustersampling.png', sep='/'), height=4,width=7)
 
-g.perc_intros = ggplot(growth[which(growth$method=="correlated Ne trajectories"),]) +
-
-# g.perc_intros = ggplot(growth[which(growth$method=="correlated Ne trajectories" & growth$timeframe==timeframename[[1]]),]) +
-  geom_ribbon(aes(x=time, ymin=intro.l, ymax=intro.u), alpha=0.2, fill="#3B2668")+
-  geom_ribbon(aes(x=time, ymin=intro.ll, ymax=intro.uu), alpha=0.8, fill="#3B2668")+
+g.perc_intros = ggplot(growth[which(growth$method=="correlated Ne trajectories" & growth$timeframe==timeframename[[1]]),]) +
+  geom_ribbon(aes(x=time, ymin=intro.l, ymax=intro.u), alpha=0.2, fill=both_clades_col)+
+  geom_ribbon(aes(x=time, ymin=intro.ll, ymax=intro.uu), alpha=0.8, fill=both_clades_col)+
   theme_minimal()+
   facet_grid(.~timeframe)+
   scale_y_log10()+
@@ -780,7 +777,7 @@ g.perc_intros = ggplot(growth[which(growth$method=="correlated Ne trajectories")
   ylab("Percentage of cases due to introductions") +
   xlab("") 
 plot(g.perc_intros)
-ggsave(plot=g.perc_intros, file=paste(path, 'figures/sample_percentage.png', sep='/'), height=4,width=7)
+ggsave(plot=g.perc_intros, file=paste(path, 'figures/intro_percentage.png', sep='/'), height=4,width=7)
 
 
 ```

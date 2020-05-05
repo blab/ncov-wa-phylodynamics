@@ -23,7 +23,7 @@ insert_data
 
 <branchRateModel id="ClockModel" spec="beast.evolution.branchratemodel.StrictClockModel" clock.rate="@clock"/>
 
-<run id="mcmc" spec="MCMC" chainLength="250000000">
+<run id="mcmc" spec="beast.coupledMCMC.CoupledMCMC" chainLength="250000000" chains="4" resampleEvery="1000">
   <state id="state" storeEvery="5000">
     insert_tree
 
@@ -50,14 +50,14 @@ insert_data
   </distribution>
   insert_operators
 
-  <logger id="tracelog" spec="Logger" fileName="$(filebase).log" logEvery="100000" model="@posterior" sanitiseHeaders="true" sort="smart">
+  <logger id="tracelog" spec="Logger" fileName="$(filebase).log" logEvery="50000" model="@posterior" sanitiseHeaders="true" sort="smart">
     <log idref="posterior"/>
     <log idref="likelihood"/>
     <log idref="prior"/>
     insert_logs
   </logger>
 
-  <logger id="screenlog" mode="compound" logEvery="100000">
+  <logger id="screenlog" mode="compound" logEvery="50000">
     <log idref="posterior"/>
     <log id="ESS.0" spec="util.ESS" arg="@posterior"/>
     <log idref="likelihood"/>

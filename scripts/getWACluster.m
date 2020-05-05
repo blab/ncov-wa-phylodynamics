@@ -33,7 +33,7 @@ cls = fopen('../results/cluster_size.tsv', 'w');
 st = fopen('../results/sampling_times.tsv', 'w');
 
 fprintf(s,'filename\tmrsi\tclade\n');
-fprintf(cls,'filename\tnumber\tsize\n');
+fprintf(cls,'filename\tnumber\tsize\tclade\n');
 fprintf(st,'Date\tnumber\n');
 
 for sc = 1 : length(sample_cutoff)
@@ -134,18 +134,21 @@ for sc = 1 : length(sample_cutoff)
 
     
     % remove clusters if they are not in the correct clade
-    if ~strcmp(clade{sc}, 'all')
-        for a = length(wa_clusters):-1:1
-            seqs = strsplit(wa_clusters{a}, ',');
-            is_in_clade = cell(0,0);
-            for b = 1 : length(seqs)
-                ind = find(ismember(id,seqs{b}));
-                is_in_clade{b} = clade_membership{ind};
-            end
-            u_cl = unique(is_in_clade);
+    clade_label = cell(length(wa_clusters),1);
+    for a = length(wa_clusters):-1:1
+        seqs = strsplit(wa_clusters{a}, ',');
+        is_in_clade = cell(0,0);
+        for b = 1 : length(seqs)
+            ind = find(ismember(id,seqs{b}));
+            is_in_clade{b} = clade_membership{ind};
+        end
+        u_cl = unique(is_in_clade);
+        clade_label{a} = u_cl{1};
+        if ~strcmp(clade{sc}, 'all')
             % if cluster is not of clade, remove cluster
             if isempty(find(ismember(u_cl, clade{sc})))
                 wa_clusters(a) = [];
+                clade_label{a} = [];
             end
         end
     end
@@ -196,6 +199,7 @@ for sc = 1 : length(sample_cutoff)
     for a = length(wa_clusters):-1:1
         if isempty(wa_clusters{a}) || strcmp(wa_clusters{a}, ',')
             wa_clusters(a) = [];
+            clade_label(a) = [];
         else
             if strcmp(wa_clusters{a}(1), ',')
                 wa_clusters{a}(1)=[];
@@ -256,7 +260,7 @@ for sc = 1 : length(sample_cutoff)
                 if contains(line, 'insert_data')
                     for a = 1 : length(wa_clusters)
                         seqs = strsplit(wa_clusters{a}, ',');
-                        fprintf(cls, 'multicoal_%s_%d\t%d\t%d\n',method{sp}, sc,a,length(seqs));                    
+                        fprintf(cls, 'multicoal_%s_%d\t%d\t%d\t%s\n',method{sp}, sc,a,length(seqs), clade_label{a});                    
                         fprintf(g, '\t<data id="sequences_meta:lc_%d" spec="Alignment">\n',a);
                         for b = 1: length(seqs)
                             % find the sequence index
@@ -460,7 +464,7 @@ for sc = 1 : length(sample_cutoff)
                 if contains(line, 'insert_data')
                     for a = 1 : length(wa_clusters)
                         seqs = strsplit(wa_clusters{a}, ',');
-                        fprintf(cls, 'multibd_%s_%d\t%d\t%d\n',method{sp}, sc,a,length(seqs));                    
+                        fprintf(cls, 'multibd_%s_%d\t%d\t%d\t%s\n',method{sp}, sc,a,length(seqs), clade_label{a});                    
                         fprintf(g, '\t<data id="sequences_meta:lc_%d" spec="Alignment">\n',a);
                         for b = 1: length(seqs)
                             % find the sequence index
