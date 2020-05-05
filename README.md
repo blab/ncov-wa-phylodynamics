@@ -250,9 +250,25 @@ We find that the observed patterns are very similar to those expected for 1% of 
 
 # Discussion
 
-* Introductions caused outbreak, but did not drive it -> Actions taken locally to reduce transmission are best suited to reduce burden of COVID-19.
-* Actions individuals take to reduce transmission likely go a long way to reduce transmission -> effective public health campaigns
-* Trends in testing data accurately reflect trends in transmission dynamics -> positive tests can be used base public health decisions on even if there is dramatic undersampling.
+The outbreak of SARS-CoV-2 in Washington State was comprised of several local outbreak clusters, two of which caused the vast majority of cases.
+These two local outbreak clusters are from two different clades that notably differ in one amino acid on position 614 of the spike protein.
+This difference has been reported to cause differences in transmissibility and clinical outcome ([Korber et al][Korber et al]).
+While we observe that the relative abundance of these clades changed over time, these changes can be explained by the reduction in $$R_{e}$$ to have occurred later in the G clade compared to the D clade.
+While we can not exclude that this substitution in amino acid changes the transmissibility, we did not observe a strong difference in the maximal $$R_{e}$$ between the clades.
+If we assume different distribution of cases of the D and G clade based on geography or social contact network, local measures (from officials as well as individual) to reduce the spread of SARS-CoV-2 could explain why the relative abundance of the clades changed over time.
+
+Inferring the transmission dynamics over time, we find that the $$R_{e}$$ (at least in the D clade) reduced after local spread of SARS-CoV-2 was announced in the greater Seattle area and before measures by the state government were taken.
+This suggests that actions taken by individuals and businesses to reduce the spread of SARS-CoV-2, such as mandatory home office, helped to reduce transmission.
+This does not apply to the G clade, however, where the $$R_{e}$$ seems to have only started to decline after initial measure by the state government were taken.
+By the time of the state wide lockdown, the $$R_{e}$$ of the G clade was around 1 as well.
+
+Comparing the trends in the number of cases to the estimates from the phylodynamic methods shows that although the number of cases is most likely greatly undercounted, the trends in the number of cases is likely reliable.
+
+Lastly, we estimated the relative contribution of introductions of SARS-CoV-2 in driving the cases in Washington State.
+We find that the contribution of introductions to the overall case load in the State is overall relatively low.
+While local outbreak by definition have to be sparked from outside, the relative contribution of introductions once sparked seems to be rather low.
+This suggest that measures to control the introduction of SARS-CoV-2 are likely less effective that measure to control local spread.
+Particularly since measure to control local spread also make it less likely for introductions to spark larger outbreka.
 
 ## References
 
