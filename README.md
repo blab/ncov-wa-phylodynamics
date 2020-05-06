@@ -331,7 +331,7 @@ We used a simulation time of 6 weeks, with the Re first being 3 and then moving 
 We allowed the Re to change every 2 days, as for the inferences.
 During each window, we assume the number of infections each infection event causes to be distributed according to a negative binomial distribution with mean=Re and variance= $$Re + \frac{R_{e}^2}{k}$$, with k=0.3.
 
-We next simulated sequences of 29000 based pair length using and HKY + Gamma model with a transition/transversion ratio of 6.4, a gamma rate of 0.05 and an average rate of evolution of 0.008 per site and year.
+We next simulated sequences of 29000 based pair length using and HKY + Gamma model with a transition/transversion ratio of 6.4, a gamma rate of 0.05 and an average rate of evolution of 0.0011 per site and year.
 We then infer the population dynamics from these sequences using the same two approaches with the same settings as described above.
 We find that the most of the time, both approaches are reliably able to infer changes in the growth rates.
 The coalescent skyline approach, however, can be subject to strong biases, while the birth-death approach seems to be largely unaffected.
