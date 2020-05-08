@@ -2,6 +2,8 @@
 
 Nicola F. Müller<sup>1</sup>, Cassia Wagner<sup>1</sup>, Timothy Vaughan<sup>2</sup>, Tanja Stadler<sup>2</sup>, Trevor Bedford<sup>1</sup>
 
+<sup>1</sup>Fred Hutchinson Cancer Research Center, Vaccine and Infectious Disease Division, Seattle, WA, USA
+<sup>2</sup>ETH Zürich, Department for Biosystems Science and Engeneering, Basel, CH
 ## Introduction
 
 After it jumped from animals to humans likely sometime in the end of November or beginning of December in Wuhan, China, SARS-COV-2 spread around the world, dramatically impacting the lives of people.
