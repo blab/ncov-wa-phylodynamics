@@ -307,30 +307,3 @@ Particularly since measure to control local spread also make it less likely for 
 	<figcaption>Figure S3: Comparison between the effective reproduction number estimates for different datasets and using the coalescent or birth-death model.
   </figcaption>
 </figure>
-
-
-
-### Effect of heterogeneous offspring distributions on parameter estimates
-
-In order to be able to perform phylodynamic inferences, we used fairly simple models, we therefore next tested if we are able to infer changes in the population dynamics nonetheless.
-To do so, we simulated phylogenetic trees from an EIR compartmental model, i.e. a SEIR model where we assume that the number of susceptibles is not limiting.
-We assume that transmission is equally likely in the E and I compartment.
-We further assume the probability of moving from the E to I and from the I to the R compartment is exponentially distributed with mean=5 days.
-This leads to a mean time of infectivity if 10 days.
-
-We used a simulation time of 6 weeks, with the Re first being 3 and then moving to 1.
-We allowed the Re to change every 2 days, as for the inferences.
-During each window, we assume the number of infections each infection event causes to be distributed according to a negative binomial distribution with mean=Re and variance= $$Re + \frac{R_{e}^2}{k}$$, with k=0.3.
-
-We next simulated sequences of 29000 based pair length using and HKY + Gamma model with a transition/transversion ratio of 6.4, a gamma rate of 0.05 and an average rate of evolution of 0.0011 per site and year.
-We then infer the population dynamics from these sequences using the same two approaches with the same settings as described above.
-We find that the most of the time, both approaches are reliably able to infer changes in the growth rates.
-The coalescent skyline approach, however, can be subject to strong biases, while the birth-death approach seems to be largely unaffected.
-This bias always lead to an overestimation, not underestimation, of the growth rate towards the present.
-
-<figure>
-	<a id="fig:R0"></a>
-	<img style="width:90%;" src="figures/sims_growth.png" alt="">
-	<figcaption>Figure S4: Comparison between growth rate estimates using the birth-death and coalescent skyline and testing data from simulated data.
-  </figcaption>
-</figure>
