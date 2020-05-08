@@ -1,21 +1,20 @@
-# Outbreak in Washington State driven by rapid early growth
+# Phylodynamic analysis of COVID-19 outbreak in Washington State shows rapid early growth followed by substantial reductions in transmission
 
-<sup>1</sup>Vaccine and Infectious Disease Division, Fred Hutchinson Cancer Research Center, Seattle, WA, USA
-
+Nicola F. Müller<sup>1</sup>, Cassia Wagner<sup>1</sup>, Timothy Vaughan<sup>2</sup>, Tanja Stadler<sup>2</sup>, Trevor Bedford<sup>1</sup>
 
 ## Introduction
 
-After it jumped from animals to humans likely sometime in the end of November, beginning of December in Wuhan, China, SARS-COV-2 spread around the world, dramatically impacting the lives of people.
-An initial case of COVID-19, the disease caused by SARS-CoV-2, was reported on January 19th by someone who came back from China 4 days earlier.
-After that, there were no additional (correct?) cases of COVID-19 reported in the greater Seattle area until the end of February, when the genetic sequence data of a virus isolated from a case was shown to be closely linked to the earlier case in January([Bedford et al][Bedford et al]).
-The patient from whom the virus was isolate from did not have any travel history and represents the first known case of community transmission in the state.
+After it jumped from animals to humans likely sometime in the end of November or beginning of December in Wuhan, China, SARS-COV-2 spread around the world, dramatically impacting the lives of people.
+An initial case of COVID-19, the disease caused by SARS-CoV-2, was reported in Washington State on January 19th by someone who came back from China 4 days earlier.
+After that, there were no additional cases of COVID-19 reported in the greater Seattle area until the end of February, when the genetic sequence data of a virus isolated from a case was shown to be closely linked to the earlier case in January ([Bedford et al][Bedford et al]).
+The patient from whom the virus was isolated did not have any travel history and represents the first known case of community transmission in the state.
 The exact relation to the initial introduction remains unclear and more than one introduction of similar strains could account for the observed patterns as well ([Bedford et al][Bedford et al]).
 
-After local spread of SARS-CoV-2 was communicated, PCR based testing of people was ramped up, showing a rapidly growing outbreak, mainly greater Seattle area.
-While the number of positive test over time can give us insight into how the epidemic behaved, there is likely a significant undercounting of the actual number of cases.
+After local spread of SARS-CoV-2 was communicated, PCR based testing was ramped up, showing a rapidly growing outbreak, mainly in the greater Seattle area.
+While the number of positive tests over time can give us insight into how the epidemic behaved, there is likely a significant undercounting of the actual number of cases.
 
 Instead of directly using the number of positive tests to infer the dynamics of SARS-CoV-2 spread in Washington State, we here use the genetic sequence data of viruses isolated from patients in Washington State using phylodynamic methods ([Grenfell et al][Grenfell et al]).
-To do so, phylodynamic method use the information of when viruses isolated from different patients last shared a common ancestor to inform these dynamics.
+To do so, phylodynamic methods use the information of when viruses isolated from different patients last shared a common ancestor.
 There are two conceptually different frameworks to do so, coalescent ([Kingman][Kingman]) and birth-death models ([Kendall][Kendall]).
 In birth-death approaches, the birth, death and sampling of lineages over time are modelled.
 Each lineage, which corresponds to a virus in a host, has a rate of birth (one lineage become two), death, or being sampled and appearing as a tip in the phylogeny.
@@ -26,10 +25,9 @@ Each lineage coalesces with any other co-existing lineage at a rate that is inve
 Coalescent approaches, in contrast to birth-death approaches, condition on sampling.
 This means that they do not directly take into account how many samples there are available through time to inform population dynamics.
 
-We here infer the past population dynamics of SARS-CoV-2 spread from local outbreak clusters of genetic sequence data from SARS-CoV-2 viruses isolated from patients in Washington State.
-TO do so, we here first split the outbreak in Washington State into sets of sequences that are likely connected by local transmission (to which we refer to as local outbreak clusters).
+We here infer the past population dynamics of SARS-CoV-2 spread from local outbreak clusters of genetic sequence data from viruses isolated from patients in Washington State.
+To do so, we here first split the outbreak in Washington State into sets of sequences that are likely connected by local transmission (to which we refer to as local outbreak clusters).
 We then use these local outbreak cluster to infer the population dynamics of the Washington State outbreak jointly from all local outbreak clusters.
-
 
 This allows us to first estimate the relative contribution of introductions compared to local transmissions, showing that while introduction causes the outbreak, the overall impact introductions have in driving the outbreak is low.
 We then show that although testing PCR started late, it largely captured the dynamics of the outbreak.
@@ -39,7 +37,7 @@ We then show that although testing PCR started late, it largely captured the dyn
 ### Introductions into Washington State
 
 In order to distinguish between sequences that are connected by local transmission, we cluster all sequences from Washington State together based on their pairwise genetic distance.
-To do so, we first built a phylogenetic tree based solely on the pairwise genetic distances using the sequences from Washington State using the [nextstrain pipeline][https://nextstrain.org/ncov].
+To do so, we first built a phylogenetic tree based solely on the pairwise genetic distances using the sequences from Washington State using the [Nextstrain pipeline](https://nextstrain.org/ncov).
 
 We then compute the pairwise genetic distance between any two samples from Washington State.
 If two samples have a genetic distance of less than 5 mutations, we consider them connected.
@@ -65,11 +63,11 @@ This is equivalent to using an exponential coalescent model with time varying gr
 We implemented this approach as extension to the Bayesian phylogenetics software BEAST2 ([Bouckaert et al][Bouckaert et al]).
 The code for the multi tree coalescent is available here (https://github.com/nicfel/NAB).
 We allow the effective population sizes to change every 2 days and the rates of introduction to change every 14 days.
-The inference of the effective population sizes and rates of introductions is performed using a adaptive multivaraite gaussian operator ([Baele et al][Baele et al]), implemented here https://github.com/BEAST2-Dev/BEASTLabs.
+The inference of the effective population sizes and rates of introductions is performed using a adaptive multivariate Gaussian operator ([Baele et al][Baele et al]), implemented here https://github.com/BEAST2-Dev/BEASTLabs.
 
 In contrast to backwards in time coalescent approaches, we can consider different local outbreak clusters as independent observations of the same underlying population process using birth death models.
 We infer the effective reproduction number using the birth-death skyline model by assuming the different local outbreak clusters are independent observations of the same process with the same parameters ([Müller et al][Müller et al]).
-We allow the effective reproduction number to change evert 2 days.
+We allow the effective reproduction number to change every 2 days.
 As for the coalescent approach, we assume adjacent effective reproduction numbers to be normally distributed in log space with mean 0 and an estimated sigma.
 We further assume the becoming un-infectious rate to be 36.5 per year which corresponds to an average time of infectivity of 10 days ([Ferretti et al][Ferretti et al]).
 We allow that the probability of an individual to be sampled and sequenced upon recovery to change every 14 days.
@@ -134,7 +132,7 @@ After community spread in Washington State was first reported on the 29th of Feb
 
 The initial decline in $$R_{e}$$, was mostly driven by a decline in $$R_{e}$$ of the D clade.
 The G clade, on the other hand, seems to have a high $$R_{e}$$ of around 3 for slightly longer, with a decrease in $$R_{e}$$ starting in early March.
-Notably, however, we do not see a difference in the maximal $$R_{e}$$ and only observe a difference in when the decline in $$R_{e}$$ occured.
+Notably, however, we do not see a difference in the maximal $$R_{e}$$ and only observe a difference in when the decline in $$R_{e}$$ occurred.
 This difference in decline could be explained by the different clades circulating in different geographic and or social groups in Washington State.
 Spread of SARS-CoV-2 was initially reported to be mainly in Snohomish County, north of Seattle.
 This might have affected behavior more strongly in these areas than in places where the G clade was circulating.
@@ -150,7 +148,7 @@ The inferred trends in effective reproduction numbers are consistent with a decr
 <figure>
 	<a id="fig:R0"></a>
 	<img style="width:90%;" src="figures/bdsky_R0.png" alt="">
-	<figcaption>Figure 4: Effective reproduction number of of SARS-CoV-2 in Washington State.
+	<figcaption>Figure 2: Effective reproduction number of of SARS-CoV-2 in Washington State.
   The effective reproduction number (on the y-axis) is estimated for intervals of 2 days using a birth-death skyline model ([Stadler et al][Stadler et al]).
   The three different lines show when local transmission was first reported in WA, when initial state wide measures began and when the stay at home order was issued.
   </figcaption>
@@ -163,21 +161,21 @@ While there is intensive testing for COVID-19 in Washington State since the begi
 Using the coalescent, we can estimate past population dynamics while conditioning on sampling, which means that we do not directly consider the number of samples through time as informative about the population dynamics.
 
 Using a coalescent skyline approach, we test whether there are significant transmission dynamics that are not captured in the number of positive tests through time.
-As shown in the figure below, the effective population size estimates largely follow the number of cases through time when we assume a average time difference of 5 days between infection and onset of symptoms.
+As shown in the figure below, the effective population size estimates largely follow the number of cases through time when we assume an average time difference of 5 days between infection and onset of symptoms (blue interval).
+This suggests that reported case counts are an accurate assessment of underlying prevalence.
+
 The effective population size trends for the D and G clade are, however, differ greatly.
 The effective population size estimated from the D clade peaks almost 2 weeks before the G clade.
 At that time, the effective population size of the D clade was already declining for a while.
 This is largely consistent with the trends in $$R_{e}$$ from above, estimated using the birth-death skyline model.
 
-
-
 <figure>
 	<a id="fig:R0"></a>
 	<img style="width:90%;" src="figures/coal_Ne_vs_test.png" alt="">
-	<figcaption>Figure 6: Comparison between the inferred effective population sizes and number of positive samples by symptom onset.
+	<figcaption>Figure 3: Comparison between the inferred effective population sizes and number of positive samples by symptom onset.
   Here we compare the inferred effective population sizes (y-axis, right) to the number of positive samples by symptom onset (y-axis, left).
 	The number of positive samples is shifted by 5 days to correct for the average time difference between the time of infection and onset of symptoms.
-	We show the inferred effective population sizes inferred from sequences from the D and G clade and the two clades seperately.
+	We show the inferred effective population sizes inferred from sequences from the D and G clade and the two clades separately.
   </figcaption>
 </figure>
 
@@ -191,12 +189,11 @@ We find that the trends in growth rates are the same in all estimates.
 <figure>
 	<a id="fig:R0"></a>
 	<img style="width:90%;" src="figures/growth_rates.png" alt="">
-	<figcaption>Figure 6: Comparison between growth rate estimates using the coalescent and birth-death skyline model and testing data.
+	<figcaption>Figure 4: Comparison between growth rate estimates using the coalescent and birth-death skyline model and testing data.
   Here we compare the growth rates (on the y-axis) of the Washington State outbreak to the growth rates calculated from the number of positive tests by symptom onset.
 	Additionally, we shift the growth rate estimates by 5 days to reflect the average difference in time between infection and symptom onset.
   </figcaption>
 </figure>
-
 
 ### Introductions caused but did not sustain the outbreak
 
@@ -209,7 +206,7 @@ As described in the Methods and Materials part, the coalescent skyline estimate 
 The rate of introduction $$i$$ can be described as $$\frac{I_{outside} m^{f}}{I_{WA}}$$.
 This means that the number of introductions per unit of time can be expressed as $$i * I_{WA} = I_{outside} m^{f}$$
 We then assume that we can approximate the local transmission rate $$\theta$$ by using the change in effective population sizes over time.
-The number of novel infections per unit of time can then be described as %%\theta * I_{WA}$$.
+The number of novel infections per unit of time can then be described as $$\theta * I_{WA}$$.
 We then compute the ratio of introductions over local transmissions as the ratio of the introduction rate over the transmission rate $$\frac{i * I_{WA}}{\theta * I_{WA}} = \frac{i}{\theta}$$.
 
 
@@ -222,12 +219,12 @@ This increase is likely driven by a decrease in the estimated local transmission
 <figure>
 	<a id="fig:perc_intro"></a>
 	<img style="width:90%;" src="figures/intro_percentage.png" alt="">
-	<figcaption>Figure 2: Estimated percentage of new cases due to introductions.
+	<figcaption>Figure 5: Estimated percentage of new cases due to introductions.
   </figcaption>
 </figure>
 
 We next test how likely adding more samples is to reveal new introductions into Washington State.
-The less likey this is, the less important introductions are to driving the outbreak.
+The less likely this is, the less important introductions are to driving the outbreak.
 We test this by randomly subsampling the overall dataset and counting the number of introductions after.
 We repeat this for different amount of samples and then compute how probable one new sample is to reveal a new introduction.
 We find that the sequencing most likely caught all larger outbreak as of March 24th.
@@ -242,7 +239,7 @@ We find that the observed patterns are very similar to those expected for 1% of 
 <figure>
 	<a id="fig:perc_intro"></a>
 	<img style="width:90%;" src="figures/intro_clustersampling.png" alt="">
-	<figcaption>Figure 3: Probability of catching new introductions with additional samples.
+	<figcaption>Figure 6: Probability of catching new introductions with additional samples.
   </figcaption>
 </figure>
 
@@ -257,18 +254,17 @@ While we observe that the relative abundance of these clades changed over time, 
 While we can not exclude that this substitution in amino acid changes the transmissibility, we did not observe a strong difference in the maximal $$R_{e}$$ between the clades.
 If we assume different distribution of cases of the D and G clade based on geography or social contact network, local measures (from officials as well as individual) to reduce the spread of SARS-CoV-2 could explain why the relative abundance of the clades changed over time.
 
-Inferring the transmission dynamics over time, we find that the $$R_{e}$$ (at least in the D clade) reduced after local spread of SARS-CoV-2 was announced in the greater Seattle area and before measures by the state government were taken.
-This suggests that actions taken by individuals and businesses to reduce the spread of SARS-CoV-2, such as mandatory home office, helped to reduce transmission.
+Inferring the transmission dynamics over time, we find that the $$R_{e}$$ (at least in the D clade) reduced after local spread of SARS-CoV-2 was announced in the greater Seattle area and before interventions by the state government were enacted.
+This suggests that actions taken by individuals and businesses to reduce the spread of SARS-CoV-2, such as mandatory work from home, helped to reduce transmission.
 This does not apply to the G clade, however, where the $$R_{e}$$ seems to have only started to decline after initial measure by the state government were taken.
 By the time of the state wide lockdown, the $$R_{e}$$ of the G clade was around 1 as well.
 
 Comparing the trends in the number of cases to the estimates from the phylodynamic methods shows that although the number of cases is most likely greatly undercounted, the trends in the number of cases is likely reliable.
 
-Lastly, we estimated the relative contribution of introductions of SARS-CoV-2 in driving the cases in Washington State.
-We find that the contribution of introductions to the overall case load in the State is overall relatively low.
-While local outbreak by definition have to be sparked from outside, the relative contribution of introductions once sparked seems to be rather low.
+Lastly, we estimated the relative contribution of introductions of SARS-CoV-2 in driving the epidemic in Washington State.
+While local outbreak was certainly sparked from outside, we find that the contribution of introductions to the overall case load in the State to be relatively low (<10%).
 This suggest that measures to control the introduction of SARS-CoV-2 are likely less effective that measure to control local spread.
-Particularly since measure to control local spread also make it less likely for introductions to spark larger outbreka.
+Particularly since measure to control local spread also make it less likely for introductions to spark larger outbreaks.
 
 ## References
 
@@ -282,11 +278,6 @@ Particularly since measure to control local spread also make it less likely for 
 * [Ferretti et al]: https://doi.org/10.1126/science.abb6936
 * [Korber et al]: https://doi.org/10.1101/2020.04.29.069054
 * [Stadler et al]: https://doi.org/10.1073/pnas.1207965110
-
-
-
-
-
 
 
 
