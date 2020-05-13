@@ -266,9 +266,9 @@ By the time of the state wide lockdown, the $$R_{e}$$ of the G clade was around 
 Comparing the trends in the number of cases to the estimates from the phylodynamic methods shows that although the number of cases is most likely greatly undercounted, the trends in the number of cases is likely reliable.
 
 Lastly, we estimated the relative contribution of introductions of SARS-CoV-2 in driving the epidemic in Washington State.
-While local outbreak was certainly sparked from outside, we find that the contribution of introductions to the overall case load in the State to be relatively low (<10%).
+While local outbreak was certainly sparked from outside, we find that the contribution of introductions to the overall case load in the state to be relatively low (<10%).
 This suggest that measures to control the introduction of SARS-CoV-2 are likely less effective that measure to control local spread.
-Particularly since measure to control local spread also make it less likely for introductions to spark larger outbreaks.
+Particularly, considering that measures to control local spread also make it less likely for introductions to spark larger outbreaks.
 
 ## References
 
