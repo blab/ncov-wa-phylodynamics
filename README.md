@@ -3,6 +3,7 @@
 Nicola F. Müller<sup>1</sup>, Cassia Wagner<sup>1</sup>, Timothy Vaughan<sup>2</sup>, Tanja Stadler<sup>2</sup>, Trevor Bedford<sup>1</sup>
 
 <sup>1</sup>Fred Hutchinson Cancer Research Center, Vaccine and Infectious Disease Division, Seattle, WA, USA
+
 <sup>2</sup>ETH Zürich, Department for Biosystems Science and Engeneering, Basel, CH
 ## Introduction
 
@@ -112,6 +113,7 @@ In turn, The proportion of cases from the G clade steadily increased over time.
 	<figcaption>Figure 1: Lineage through time plot of different local outbreak clusters that have more than one sampled sequence.
   The plot show the inferred lineages through time for different local outbreak clusters.
   The different lineage through time plots are colored by the amino acid on position 614 on the spike protein.
+	The number of lineages through time is highly contingent on how many samples there were included at any point in time.
   </figcaption>
 </figure>
 
