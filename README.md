@@ -68,7 +68,7 @@ We allow the effective population sizes to change every 2 days and the rates of 
 The inference of the effective population sizes and rates of introductions is performed using a adaptive multivariate Gaussian operator ([Baele et al][Baele et al]), implemented here https://github.com/BEAST2-Dev/BEASTLabs.
 
 In contrast to backwards in time coalescent approaches, we can consider different local outbreak clusters as independent observations of the same underlying population process using birth death models.
-We infer the effective reproduction number using the birth-death skyline model by assuming the different local outbreak clusters are independent observations of the same process with the same parameters ([Müller et al][Müller et al]).
+We infer the effective reproduction number using the birth-death skyline model ([Stadler et al][Stadler et al]) by assuming the different local outbreak clusters are independent observations of the same process with the same parameters ([Müller et al][Müller et al]).
 We allow the effective reproduction number to change every 2 days.
 As for the coalescent approach, we assume adjacent effective reproduction numbers to be normally distributed in log space with mean 0 and an estimated sigma.
 We further assume the becoming un-infectious rate to be 36.5 per year which corresponds to an average time of infectivity of 10 days ([Ferretti et al][Ferretti et al]).
@@ -151,7 +151,7 @@ The inferred trends in effective reproduction numbers are consistent with a decr
 	<a id="fig:R0"></a>
 	<img style="width:90%;" src="figures/bdsky_R0.png" alt="">
 	<figcaption>Figure 2: Effective reproduction number of of SARS-CoV-2 in Washington State.
-  The effective reproduction number (on the y-axis) is estimated for intervals of 2 days using a birth-death skyline model ([Stadler et al][Stadler et al]).
+  The effective reproduction number (on the y-axis) is estimated for intervals of 2 days using a birth-death skyline model.
   The three different lines show when local transmission was first reported in WA, when initial state wide measures began and when the stay at home order was issued.
   </figcaption>
 </figure>
