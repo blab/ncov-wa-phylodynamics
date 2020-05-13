@@ -60,18 +60,18 @@ vline1 = as.Date('2020-02-29') # report of community transmission in the greater
 vline2 = as.Date('2020-03-11') # intial official actions to combat coronavirus
 vline3 = as.Date('2020-03-23') # stay home stay safe order
 
-# 
-# # combine runs
-# logs = list.files(path=paste(path, "out", sep="/"), pattern="*rep0.log", full.names=T)
-# for (i in seq(1,length(logs))){
-#     in_command <- " -b 50 -log"
-#     for (j in seq(0,2)){
-#       in_command = paste(in_command, " ", gsub("rep0", paste("rep", j,sep=""), logs[i]), sep="")
-#     }
-#     out_command = gsub("_rep0", "", logs[i])
-#     # combine the trees
-#     system(paste("/Applications/BEAST\\ 2.6.0/bin/logcombiner", in_command, "-o", out_command, "", sep=" "))
-# }
+
+# combine runs
+logs = list.files(path=paste(path, "out", sep="/"), pattern="*rep0.log", full.names=T)
+for (i in seq(1,length(logs))){
+    in_command <- " -b 20 -log"
+    for (j in seq(0,2)){
+      in_command = paste(in_command, " ", gsub("rep0", paste("rep", j,sep=""), logs[i]), sep="")
+    }
+    out_command = gsub("_rep0", "", logs[i])
+    # combine the trees
+    system(paste("/Applications/BEAST\\ 2.6.0/bin/logcombiner", in_command, "-o", out_command, "", sep=" "))
+}
 
 # # combine runs
 # logs = list.files(path=paste(path, "out", sep="/"), pattern="*rep0.*.trees", full.names=T)
@@ -483,9 +483,9 @@ p = ggplot(ltt.dat) + geom_ribbon(aes(x=time, ymin=val_offset-val/2, ymax=val_of
   xlab("") +
   scale_y_continuous(breaks=NULL) +
   geom_segment(data=segment.dat, aes(x=x, xend=xend, y=y, yend=yend)) +
-  geom_text(aes(x=as.Date("2020-02-4"), label="0", y=250), colour="black", text=element_text(size=8))+
-  geom_text(aes(x=as.Date("2020-02-4"), label="50", y=300), colour="black", text=element_text(size=8))+
-  geom_text(aes(x=as.Date("2020-02-4"), label="100", y=350), colour="black", text=element_text(size=8))+
+  geom_text(aes(x=as.Date("2020-02-4"), label="0", y=250), colour="black", text=element_text(size=6))+
+  geom_text(aes(x=as.Date("2020-02-4"), label="50", y=300), colour="black", text=element_text(size=6))+
+  geom_text(aes(x=as.Date("2020-02-4"), label="100", y=350), colour="black", text=element_text(size=6))+
   geom_text(aes(x=as.Date("2020-02-8"), label="nr lineages in cluster", y=300), angle=90, colour="black", text=element_text(size=8)) +
   ylab("")
 
@@ -760,7 +760,7 @@ g.nrintros = ggplot() +
   geom_line(data=nr_intros, aes(x=nr_samples-1, y = nr_intros, color="observed"))+
   theme_minimal()+
   scale_y_log10()+
-  ylab("Probability than new sample reveals new introduction") +
+  ylab("Probability that new sample reveals new introduction") +
   xlab("Number of samples") +
   scale_color_manual(name="percentage of cases\ndue to introductions", 
                      values=c("#F9C988", "#71BD89", "#24A897", both_clades_col))
