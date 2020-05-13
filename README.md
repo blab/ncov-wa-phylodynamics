@@ -59,8 +59,8 @@ Between these predefined time points where the rates are estimated, the rates ar
 This is equivalent to assuming exponential growth or decline between the effective population sizes at theses time points.
 
 We then use two different ways to account for correlations between adjacent effective population sizes (N<sub>e</sub>).
-First, we use the classic skyride approach where we assume that the logarithm of adjacent N<sub>e</sub> is normally distributed with mean 0 and an estimated sigma.
-Second, we use an approach where we assume that the differences the growth rates are normally distributed with mean 0 and an estimated sigma.
+First, we use the classic skyride ([Gill et al][Gill et al]) approach where we assume that the logarithm of adjacent N<sub>e</sub> is normally distributed with mean 0 and an estimated sigma.
+Additionally, we use an approach where we assume that the differences the growth rates are normally distributed with mean 0 and an estimated sigma.
 This is equivalent to using an exponential coalescent model with time varying growth rates.
 We implemented this approach as extension to the Bayesian phylogenetics software BEAST2 ([Bouckaert et al][Bouckaert et al]).
 The code for the multi tree coalescent is available here (https://github.com/nicfel/NAB).
@@ -215,8 +215,10 @@ We then compute the ratio of introductions over local transmissions as the ratio
 The resulting estimates include a large amount of assumptions and should be interpreted as such, but can nevertheless give us an idea of how important introductions overall are.
 As shown in the figure below, we estimate the percentage of new cases to be below 10 after the initial introductions and most likely to be between 1% and 3%.
 
-Towards the April, the estimate increases to between 3% and 10%.
-This increase is likely driven by a decrease in the estimated local transmission, rather than and increase in the introductions.
+Towards April, the estimate increases to between 3% and 10%.
+As a reference, the US instituted a travel ban for non-residents coming from China effective starting from the 2nd of February and from Europe starting on the 16th of March.
+This increase of the inferred relative proportion in the number of infected on the overall number of cases is, however, unlikely driven by more introductions.
+Rather, it can be solely explained by a decrease in the number of local transmissions which will automatically increase the percentage of introductions in the overall number of cases.
 
 <figure>
 	<a id="fig:perc_intro"></a>
@@ -280,8 +282,7 @@ Particularly since measure to control local spread also make it less likely for 
 * [Ferretti et al]: https://doi.org/10.1126/science.abb6936
 * [Korber et al]: https://doi.org/10.1101/2020.04.29.069054
 * [Stadler et al]: https://doi.org/10.1073/pnas.1207965110
-
-
+* [Gill et al]: https://doi.org/10.1093/molbev/mss265
 
 ## Supplementary Material
 
