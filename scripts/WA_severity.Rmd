@@ -1,0 +1,115 @@
+---
+title: "WA growth rates"
+author: "Nicola Mueller"
+date: '2020-02-05'
+output:
+  bookdown::html_document2: default
+bibliography: library.bib
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library("coda")
+library("colorblindr") 
+library(grid)
+library(gridExtra)
+library(ggtree)
+
+path = "/Users/nmueller/Documents/github/hCoV-19_WA"
+
+# define the colors for bd and coal methods
+both_clades_col = "#0072B2"
+d_clade_col = "#6DC1B3"
+g_clade_col = "#F6C445"
+
+# regions given by https://www.doh.wa.gov/Portals/1/Documents/1200/phsd-PHEPR.pdf
+region_map = data.frame(county="King", region="King")
+region_map = rbind(region_map, data.frame(county="Snohomish", region="North"))
+region_map = rbind(region_map, data.frame(county="Island", region="North"))
+region_map = rbind(region_map, data.frame(county="Whatcom", region="North"))
+region_map = rbind(region_map, data.frame(county="Skagit", region="North"))
+region_map = rbind(region_map, data.frame(county="San Juan", region="North"))
+
+
+region_map = rbind(region_map, data.frame(county="Pierce", region="Pierce"))
+
+region_map = rbind(region_map, data.frame(county="Mason", region="North West"))
+region_map = rbind(region_map, data.frame(county="Kitsap", region="North West"))
+region_map = rbind(region_map, data.frame(county="Jefferson", region="North West"))
+region_map = rbind(region_map, data.frame(county="Clallam", region="North West"))
+
+
+region_map = rbind(region_map, data.frame(county="Thurston", region="West"))
+region_map = rbind(region_map, data.frame(county="Lewis", region="West"))
+region_map = rbind(region_map, data.frame(county="Pacific", region="West"))
+region_map = rbind(region_map, data.frame(county="Grays Harbor", region="West"))
+
+region_map = rbind(region_map, data.frame(county="Wahkiakum", region="Southwest"))
+region_map = rbind(region_map, data.frame(county="Cowlitz", region="Southwest"))
+region_map = rbind(region_map, data.frame(county="Skamania", region="Southwest"))
+region_map = rbind(region_map, data.frame(county="Clark", region="Southwest"))
+
+
+region_map = rbind(region_map, data.frame(county="Yakima", region="South Central"))
+region_map = rbind(region_map, data.frame(county="Kittitas", region="South Central"))
+region_map = rbind(region_map, data.frame(county="Benton", region="South Central"))
+region_map = rbind(region_map, data.frame(county="Klickitat", region="South Central"))
+region_map = rbind(region_map, data.frame(county="Franklin", region="South Central"))
+region_map = rbind(region_map, data.frame(county="Walla Walla", region="South Central"))
+
+region_map = rbind(region_map, data.frame(county="Adams", region="East"))
+region_map = rbind(region_map, data.frame(county="Whitman", region="East"))
+region_map = rbind(region_map, data.frame(county="Garfield", region="East"))
+region_map = rbind(region_map, data.frame(county="Columbia", region="East"))
+region_map = rbind(region_map, data.frame(county="Asotin", region="East"))
+region_map = rbind(region_map, data.frame(county="Lincoln", region="East"))
+region_map = rbind(region_map, data.frame(county="Spokane", region="East"))
+region_map = rbind(region_map, data.frame(county="Ferry", region="East"))
+region_map = rbind(region_map, data.frame(county="Stevens", region="East"))
+region_map = rbind(region_map, data.frame(county="Pend Oreille", region="East"))
+
+region_map = rbind(region_map, data.frame(county="Grant", region="North Central"))
+region_map = rbind(region_map, data.frame(county="Okanogan", region="North Central"))
+region_map = rbind(region_map, data.frame(county="Chelan", region="North Central"))
+region_map = rbind(region_map, data.frame(county="Douglas", region="North Central"))
+
+region_map$county = paste(region_map$county, "County")
+
+
+```
+
+# Get the number of cases by county
+
+```{r cases}
+allcases = read.table(paste(path,'/data/df_nicola.tsv',sep=""), sep="\t", header=T)
+
+allcases$age_bin = factor(allcases$age_bin, levels=c("under 10","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80-89","90+"))
+u_primers = unique(allcases$primers)
+for (i in seq(1,length(u_primers))){
+  cases = allcases[which(allcases$primers==u_primers[[i]]),]
+  
+  require(ggpubr)
+
+  cases$age_bin_clade = interaction(cases$clade,cases$age_bin)
+  
+  ggerrorplot(cases, x="age_bin_clade", y="avg_ct", color="clade", desc_stat = "mean_se", add = "dotplot")+
+    ylim(c(10,30)) +
+    ggtitle(u_primers[[i]])
+  ggsave(paste("age_clade_bin.", i, ".pdf", sep=""), width=15,height=3) 
+  
+  
+  if (i==1 || i==4){
+    print(u_primers[[i]])
+    cases$date = as.Date(cases$date)
+    cases$offset = cases$date-min(cases$date)
+    model <- glm(avg_ct ~ clade + bin_age + offset+ 1, data=cases, family=gaussian())
+    summary(model)
+  }
+}
+allcases$date = as.Date(allcases$date)
+allcases$offset = allcases$date-min(allcases$date)
+model <- glm(avg_ct ~ clade + bin_age + primers + offset+ 1, data=allcases, family=gaussian())
+summary(model)
+```

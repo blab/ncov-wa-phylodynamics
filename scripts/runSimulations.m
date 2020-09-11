@@ -1,19 +1,20 @@
 % run sims
-sample_cutoff = {'2020-04-08'};
+sample_cutoff = {'2020-06-31'};
 end_date = '2020-01-25';
 
 start_tree = '2020-02-06';
 
 clock_rate = 0.0011;
 
-k = 0.3;
+k = 1;
 
 syms p r;
 reporting_delay=0;
 
 rate_shift = datenum(start_tree, 'yyyy-mm-dd'):2:(datenum(sample_cutoff, 'yyyy-mm-dd')+14);
 rate_shift_year = (rate_shift - datenum(start_tree, 'yyyy-mm-dd'))/366;
-R0 = [repmat(3,1,8) 3:-(2.4/9):1 0.6];
+
+R0 = [repmat(2.5,1,8) 2.5:-(1.4/9):0.6 repmat(0.6,1,15) 0.6:0.05:1];
 R0(end+1:length(rate_shift_year)) = R0(end);
 
 eqn1 = p*r/(1-p);
@@ -21,13 +22,13 @@ eqn2 = p*r/(1-p)^2;
 
 
 for i = 1 : length(R0)
-    sol = solve([eqn1==R0(i), eqn2==R0(i)+R0(i)^2/k], [p,r]);
+    sol = solve([eqn1==R0(i), eqn2 == R0(i)+R0(i)^2/k], [p,r]);
     rvalue(i) = double(sol.r);
     pvalue(i) = 1-double(sol.p);
 end
 x = [1:100];
 
-unin_rate = 36.5;
+unin_rate = 52.2857;
 
 
 y = zeros(length(x), length(R0));
@@ -44,6 +45,16 @@ for rep = 0 : 8
     while ~feof(f)
         line = fgets(f);
         if contains(line, 'insert_transmission')
+%             rate_string = sprintf('%f', R0(1)*unin_rate);
+%             for b = 2 : length(R0)
+%                 rate_string = sprintf('%s,%f:%f', rate_string, R0(b)*unin_rate,rate_shift_year(b));
+%             end
+%             fprintf(g, '\t\t<reactionGroup spec=''ReactionGroup'' reactionGroupName=''Infection''>\n');
+%             fprintf(g, '\t\t\t<reaction spec=''Reaction'' rate="%s">\n',rate_string);
+%             fprintf(g, '\t\t\t\tI:1 -> %dI:1\n',2);
+%             fprintf(g, '\t\t\t</reaction>\n');
+%             fprintf(g, '\t\t</reactionGroup>\n');
+
             for i = 1 : length(x)
                 rate_string = sprintf('%f', y(i,1));
                 for b = 2 : length(R0)
@@ -51,15 +62,18 @@ for rep = 0 : 8
                 end
                 fprintf(g, '\t\t<reactionGroup spec=''ReactionGroup'' reactionGroupName=''Infection''>\n');
                 fprintf(g, '\t\t\t<reaction spec=''Reaction'' rate="%s">\n',rate_string);
-                fprintf(g, '\t\t\t\tI:1 -> I:1 + %dE:1\n',x(i));
+%                 fprintf(g, '\t\t\t\tI:1 -> I:1 + %dI:1\n',x(i));
+                fprintf(g, '\t\t\t\tI:1 -> %dI:1\n',x(i)+1);
                 fprintf(g, '\t\t\t</reaction>\n');
                 fprintf(g, '\t\t</reactionGroup>\n');
-                fprintf(g, '\t\t<reactionGroup spec=''ReactionGroup'' reactionGroupName=''Infection''>\n');
-                fprintf(g, '\t\t\t<reaction spec=''Reaction'' rate="%s">\n',rate_string);
-                fprintf(g, '\t\t\t\tE:1 -> %dE:1\n',x(i)+1);
-                fprintf(g, '\t\t\t</reaction>\n');
-                fprintf(g, '\t\t</reactionGroup>\n');
+%                 fprintf(g, '\t\t<reactionGroup spec=''ReactionGroup'' reactionGroupName=''Infection''>\n');
+%                 fprintf(g, '\t\t\t<reaction spec=''Reaction'' rate="%s">\n',rate_string);
+%                 fprintf(g, '\t\t\t\tE:1 -> %dE:1\n',x(i)+1);
+%                 fprintf(g, '\t\t\t</reaction>\n');
+%                 fprintf(g, '\t\t</reactionGroup>\n');
             end
+        elseif contains(line, 'insert_simulation_time')
+             fprintf(g, strrep(line, 'insert_simulation_time', num2str(max(rate_shift_year))));
         else
             fprintf(g, line);
         end

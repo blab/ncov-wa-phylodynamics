@@ -1,7 +1,7 @@
 % getSeqFromSims
 
 % defines the start of the simulation
-sample_cutoff = {'2020-04-08'};
+sample_cutoff = {'2020-06-31'};
 end_date = '2020-01-25';
 
 % define the reporting delay in days
@@ -51,14 +51,17 @@ for rep = 0:8
                 all_sampling(end+1,1) =  datenum(date(ind));
             end
             max_sampling_times(a) = max(sampling_times{a});
-
         end
 
 
 
         %% build the mutlti coal xml
-        method = {'skygrid', 'independent', 'skygrowth'};
+        method = {'skygrid', 'independent', 'skygrowth', 'skysampling'};
         for sp = 1 : length(method)
+            if sp == 2 || sp == 4
+                continue;
+            end
+
             f = fopen('../xml_templates/multicoal_template.xml');
             g = fopen(sprintf('../xmls/simmulticoal_%s_%d.xml', method{sp}, rep), 'w');
 
@@ -121,6 +124,10 @@ for rep = 0:8
 
                     fprintf(g,'\t\t\t<parameter id="rateShifts" name="stateNode">%s</parameter>\n', sprintf('%f ', rate_shifts));
                     fprintf(g,'\t\t\t<parameter id="rateShifts.immi" name="stateNode">%s</parameter>\n', sprintf('%f ', rate_shifts_immi));
+                    if sp==4
+                        fprintf(g,'\t\t\t<parameter id="samplingRate" name="stateNode">0</parameter>\n');
+                        fprintf(g,'\t\t\t<parameter id="rateShifts.samp" name="stateNode">0.5</parameter>\n');
+                    end
                 elseif contains(line, 'insert_init_tree')
                     for a = 1 : length(wa_clusters)
                         seqs = strsplit(wa_clusters{a}, ',');
@@ -132,40 +139,40 @@ for rep = 0:8
                     end
                 elseif contains(line, 'insert_priors')
 
-                fprintf(g,'\t\t\t\t<prior id="Sigmaprior2" name="distribution" x="@sigma.immi">\n');
-                fprintf(g,'\t\t\t\t\t<LogNormal id="Uniform.4" name="distr" meanInRealSpace="true" M="0.5" S="1"/>\n');
-                fprintf(g,'\t\t\t\t</prior>\n');
 
-                if sp==1
-                    fprintf(g,'\t\t\t\t<prior id="Sigmaprior1" name="distribution" x="@sigma.Ne">\n');
-                    fprintf(g,'\t\t\t\t\t<LogNormal id="Uniform.3" name="distr" meanInRealSpace="true" M="0.1" S="0.5"/>\n');
+                    fprintf(g,'\t\t\t\t<prior id="Sigmaprior2" name="distribution" x="@sigma.immi">\n');
+                    fprintf(g,'\t\t\t\t\t<LogNormal id="Uniform.4" name="distr" meanInRealSpace="true" M="0.5" S="0.25"/>\n');
                     fprintf(g,'\t\t\t\t</prior>\n');
 
-                    fprintf(g,'\t\t\t\t<distribution spec=''beast.mascotskyline.skyline.LogSmoothingPrior'' NeLog="@Ne">\n');
-                    fprintf(g,'\t\t\t\t\t<distr spec="beast.math.distributions.Normal"  mean="0">\n');
-                    fprintf(g,'\t\t\t\t\t<sigma idref="sigma.Ne"/>\n');
-                    fprintf(g,'\t\t\t\t\t</distr>\n');
-%                     fprintf(g,'\t\t\t\t\t<initialDistr spec="beast.math.distributions.Normal"  mean="0" sigma="10"/>\n');
-                    fprintf(g,'\t\t\t\t\t<finalDistr spec="beast.math.distributions.Normal"  mean="-10" sigma="1"/>\n');
-                    fprintf(g,'\t\t\t\t</distribution>\n');
+                    if sp==1
+                        fprintf(g,'\t\t\t\t<prior id="Sigmaprior1" name="distribution" x="@sigma.Ne">\n');
+                        fprintf(g,'\t\t\t\t\t<LogNormal id="Uniform.3" name="distr" meanInRealSpace="true" M="0.1" S="0.5"/>\n');
+                        fprintf(g,'\t\t\t\t</prior>\n');
 
-                elseif sp==2
-                    fprintf(g,'\t\t\t\t<prior id="Sigmaprior1" name="distribution" x="@Ne">\n');
-                    fprintf(g,'\t\t\t\t\t<Normal id="Uniform.3" name="distr" mean="0" sigma="2"/>\n');
-                    fprintf(g,'\t\t\t\t</prior>\n');
-                elseif sp==3
-                    fprintf(g,'\t\t\t\t<prior id="Sigmaprior1" name="distribution" x="@sigma.Ne">\n');
-                    fprintf(g,'\t\t\t\t\t<LogNormal id="Uniform.3" name="distr" meanInRealSpace="true" M="20" S="0.5"/>\n');
-                    fprintf(g,'\t\t\t\t</prior>\n');
+                        fprintf(g,'\t\t\t\t<distribution spec=''beast.mascotskyline.skyline.LogSmoothingPrior'' NeLog="@Ne">\n');
+                        fprintf(g,'\t\t\t\t\t<distr spec="beast.math.distributions.Normal"  mean="0">\n');
+                        fprintf(g,'\t\t\t\t\t<sigma idref="sigma.Ne"/>\n');
+                        fprintf(g,'\t\t\t\t\t</distr>\n');
+    %                     fprintf(g,'\t\t\t\t\t<initialDistr spec="beast.math.distributions.Normal"  mean="0" sigma="10"/>\n');
+                        fprintf(g,'\t\t\t\t\t<finalDistr spec="beast.math.distributions.Normal"  mean="-5" sigma="5"/>\n');
+                        fprintf(g,'\t\t\t\t</distribution>\n');
 
-                    fprintf(g,'\t\t\t\t<distribution spec=''nab.skygrid.GrowthRateSmoothingPriorRealParam'' NeLog="@Ne" rateShifts="@rateShifts">\n');
-                    fprintf(g,'\t\t\t\t\t<distr spec="beast.math.distributions.Normal"  mean="0">\n');
-                    fprintf(g,'\t\t\t\t\t<sigma idref="sigma.Ne"/>\n');
-                    fprintf(g,'\t\t\t\t\t</distr>\n');
-                    fprintf(g,'\t\t\t\t\t<finalDistr spec="beast.math.distributions.Normal"  mean="-10" sigma="1"/>\n');
-                    fprintf(g,'\t\t\t\t</distribution>\n');
+                    elseif sp==2
+                        fprintf(g,'\t\t\t\t<prior id="Sigmaprior1" name="distribution" x="@Ne">\n');
+                        fprintf(g,'\t\t\t\t\t<Normal id="Uniform.3" name="distr" mean="0" sigma="2"/>\n');
+                        fprintf(g,'\t\t\t\t</prior>\n');
+                    elseif sp==3 || sp==4
+                        fprintf(g,'\t\t\t\t<prior id="Sigmaprior1" name="distribution" x="@sigma.Ne">\n');
+                        fprintf(g,'\t\t\t\t\t<LogNormal id="Uniform.3" name="distr" meanInRealSpace="true" M="20" S="0.5"/>\n');
+                        fprintf(g,'\t\t\t\t</prior>\n');
 
-                end
+                        fprintf(g,'\t\t\t\t<distribution spec=''nab.skygrid.GrowthRateSmoothingPriorRealParam'' NeLog="@Ne" rateShifts="@rateShifts">\n');
+                        fprintf(g,'\t\t\t\t\t<distr spec="beast.math.distributions.Normal"  mean="0">\n');
+                        fprintf(g,'\t\t\t\t\t<sigma idref="sigma.Ne"/>\n');
+                        fprintf(g,'\t\t\t\t\t</distr>\n');
+                        fprintf(g,'\t\t\t\t\t<finalDistr spec="beast.math.distributions.Normal"  mean="-5" sigma="5"/>\n');
+                        fprintf(g,'\t\t\t\t</distribution>\n');
+                    end
                     fprintf(g,'\t\t\t\t<distribution spec=''beast.mascotskyline.skyline.LogSmoothingPrior'' NeLog="@immigrationRate">\n');
                     fprintf(g,'\t\t\t\t\t<distr spec="beast.math.distributions.Normal"  mean="0">\n');
                     fprintf(g,'\t\t\t\t\t<sigma idref="sigma.immi"/>\n');
@@ -176,6 +183,10 @@ for rep = 0:8
                     fprintf(g,'\t\t\t\t<distribution id="CoalescentConstant.t" spec="nab.multitree.MultiTreeCoalescent" rateIsBackwards="true">\n');
                     fprintf(g,'\t\t\t\t\t<populationModel id="Skygrid" spec="nab.skygrid.Skygrowth" logNe="@Ne" rateShifts="@rateShifts"/>\n');
                     fprintf(g,'\t\t\t\t\t<immigrationRate id="timeVaryingMigrationRates" spec="nab.skygrid.TimeVaryingRates" rate="@immigrationRate" rateShifts="@rateShifts.immi"/>\n');
+                    if sp==4
+                        fprintf(g,'\t\t\t\t\t<samplingRate id="timeVaryingMigrationRates2" spec="nab.skygrid.TimeVaryingRates" rate="@samplingRate" rateShifts="@rateShifts.samp"/>\n');
+                    end
+
                     fprintf(g,'\t\t\t\t\t<multiTreeIntervals id="TreeIntervals.t" spec="nab.multitree.MultiTreeIntervals">\n');
                     for a = 1 : length(wa_clusters)
                         offset = (max(max_sampling_times)-max_sampling_times(a))/365;
@@ -219,11 +230,15 @@ for rep = 0:8
                     end
                     fprintf(g,'\t\t<operator id="AMVGoperator1" spec="AdaptableVarianceMultivariateNormalOperator" every="100" beta="0.1" scaleFactor="0.1" weight="10.0">\n');
                     fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$NoTransform" f="@Ne"/>\n');
-                    if sp==1 || sp==3
+                    if sp~=2
                         fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$LogTransform" f="@sigma.Ne"/>\n');
                     end
                     fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$NoTransform" f="@immigrationRate"/>\n');
                     fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$LogTransform" f="@sigma.immi"/>\n');
+                    fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$NoTransform" f="@immigrationRate"/>\n');
+                    if sp==4
+                        fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$NoTransform" f="@samplingRate"/>\n');
+                    end
                     fprintf(g,'\t\t</operator>\n');
                     fprintf(g,'\t\t<operator id="RMW" spec="RealRandomWalkOperator" windowSize="0.5" parameter="@Ne" weight="10.0"/>\n');
 
@@ -233,6 +248,9 @@ for rep = 0:8
 
                     fprintf(g,'\t\t\t<log idref="Ne"/>\n');
                     fprintf(g,'\t\t\t<log idref="immigrationRate"/>\n');
+                    if sp==4
+                        fprintf(g,'\t\t\t<log idref="samplingRate"/>\n');
+                    end
                     for a = 1 : length(wa_clusters)
                         fprintf(g,'\t\t\t<log idref="rootLength:lc_%d"/>\n',a);
                     end
