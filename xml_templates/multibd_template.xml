@@ -28,8 +28,8 @@ insert_data
     insert_tree
 
     <parameter id="absoluteReproductiveNumber" dimension="1" lower="0.0" name="stateNode">1</parameter>
-    <parameter id="becomeUninfectiousRate" dimension="1" lower="0.0" name="stateNode">36.5000</parameter>
-    <parameter id="sigma.Ne" dimension="1" lower="0.0" name="stateNode" upper="15">1</parameter>
+    <parameter id="becomeUninfectiousRate" dimension="1" lower="0.0" name="stateNode">52.2857</parameter>
+    <parameter id="sigma.Ne" dimension="1" lower="0.0" name="stateNode" upper="1">0.1</parameter>
 
     <parameter id="clock" spec="parameter.RealParameter" name="stateNode">0.0011</parameter>
     <parameter id="kappa" spec="parameter.RealParameter" lower="0.0" name="stateNode">6.5</parameter>

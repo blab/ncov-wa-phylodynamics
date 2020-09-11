@@ -1,6 +1,6 @@
 <beast version='2.0' namespace='master:master.model:master.steppers:master.conditions:master.postprocessors:master.outputs'>
     <run spec='InheritanceTrajectory'
-        verbosity='2' samplePopulationSizes="true" simulationTime="0.1853">
+        verbosity='2' samplePopulationSizes="true" simulationTime="insert_simulation_time">
 
         <model spec='Model'>
             <population spec='Population' id='E' populationName='E'/>
@@ -12,28 +12,28 @@
             <population spec='Population' id='samp2' populationName='samp2'/>
 
             <reactionGroup spec='ReactionGroup' reactionGroupName='Introduction'>
-              <reaction spec='Reaction' rate="500">
-                Iinit:1 -> Iinit:1 + E:1 + IntroCount
+              <reaction spec='Reaction' rate="2000">
+                Iinit:1 -> Iinit:1 + I:1 + IntroCount
               </reaction>
             </reactionGroup>
 
             insert_transmission
 
-          <reactionGroup spec='ReactionGroup' reactionGroupName='Exposed'>
+          <!-- <reactionGroup spec='ReactionGroup' reactionGroupName='Exposed'>
            <reaction spec='Reaction' rate="73.2000">
              E:1 -> I:1
            </reaction>
-         </reactionGroup>
+         </reactionGroup> -->
 
-         <reactionGroup spec='ReactionGroup' reactionGroupName='Recovery'>
+         <!-- <reactionGroup spec='ReactionGroup' reactionGroupName='Recovery'>
           <reaction spec='Reaction' rate="51.2400">
             I -> R
           </reaction>
-          </reactionGroup>
+          </reactionGroup> -->
 
 
           <reactionGroup spec='ReactionGroup' reactionGroupName='Sampling'>
-           <reaction spec='Reaction' rate="21.9600">
+           <reaction spec='Reaction' rate="52.2857">
              I -> samp
            </reaction>
          </reactionGroup>
@@ -55,7 +55,7 @@
 
         <lineageEndCondition spec='LineageEndCondition' nLineages="0"/>
         <inheritancePostProcessor spec='LineageFilter' reactionName="Sampling"/>
-        <inheritancePostProcessor spec='LineageSampler' nSamples="500"/>
+        <inheritancePostProcessor spec='LineageSampler' nSamples="700"/>
 
         <postSimCondition spec='LeafCountPostSimCondition'
                   nLeaves="500"
