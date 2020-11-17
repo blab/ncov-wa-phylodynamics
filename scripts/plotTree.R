@@ -11,8 +11,10 @@ rm(list = ls())
 # clock rate used for time tree
 clock.rate = 0.0008
 
-d_clade_col = "#6DC1B3"
-g_clade_col = "#F6C445"
+# define the colors for bd and coal methods
+both_clades_col = "#268457"
+d_clade_col = "#0072B2"
+g_clade_col = "#D55E00"
 
 
 # Set the directory to the directory of the file
