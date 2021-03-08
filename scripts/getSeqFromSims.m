@@ -7,10 +7,10 @@ end_date = '2020-01-25';
 % define the reporting delay in days
 reporting_delay = 0;
 
-for rep = 0:8
+for rep = 2:8
     for sc = 1 : length(sample_cutoff)
-        rate_shifts = [2/366:2/366:(datenum(sample_cutoff(sc))-datenum(end_date))/366 0.5];
-        rate_shifts_immi = [14/366:14/366:(datenum(sample_cutoff(sc))-datenum(end_date))/366 0.5];
+        rate_shifts = [7/366:7/366:(datenum(sample_cutoff(sc))-datenum(end_date))/366 1];
+        rate_shifts_immi = [7/366:7/366:(datenum(sample_cutoff(sc))-datenum(end_date))/366 1];
 
         f = fopen(sprintf('../simulations/eir_%d.tsv', rep));
         c=1;
@@ -235,12 +235,12 @@ for rep = 0:8
                     end
                     fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$NoTransform" f="@immigrationRate"/>\n');
                     fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$LogTransform" f="@sigma.immi"/>\n');
-                    fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$NoTransform" f="@immigrationRate"/>\n');
                     if sp==4
                         fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$NoTransform" f="@samplingRate"/>\n');
                     end
                     fprintf(g,'\t\t</operator>\n');
                     fprintf(g,'\t\t<operator id="RMW" spec="RealRandomWalkOperator" windowSize="0.5" parameter="@Ne" weight="10.0"/>\n');
+                    fprintf(g,'\t\t<operator id="RMW2" spec="RealRandomWalkOperator" windowSize="0.5" parameter="@sigma.immi" weight="10.0"/>\n');
 
                 elseif contains(line, 'insert_logs')
                     fprintf(g,'\t\t\t<log idref="sigma.Ne"/>\n');

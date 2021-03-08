@@ -7,10 +7,23 @@ library(ggtree)
 
 path = "/Users/nmueller/Documents/github/hCoV-19_WA"
 
+cf = as.Date("2020-07-01")
+
+muts = read.table(paste(path, '/', 'results/subs_and_muts.tsv', sep=''), sep='\t', header = T)
+muts$Date=as.Date(muts$Date)
+
 lf = list.files(paste(path, "/results/", sep=""), pattern="cluster_assignment.*.tsv")
 dat = data.frame()
 for (i in seq(1,length(lf))){
   t = read.table(paste(path, "/results/", lf[[i]], sep=""), header=T, sep="\t")
+  t$date = c()
+  for (j in seq(1,length(t$strain))){
+    ind = which(muts$Sequence==as.character(t[j,"strain"]))
+    t[j, "date"] = muts[ind, "Date"]
+  }
+  
+  t = t[which(t$date<=cf),]
+  
   tmp = strsplit(lf[[i]], split="_")[[1]]
   val = gsub("assignment", "100", gsub(".tsv", "", tmp[[length(tmp)]]))
   
@@ -23,7 +36,7 @@ for (i in seq(1,length(lf))){
 }
 
 p = ggplot(dat, aes(x=sub, y=nr)) +
-  geom_smooth() +
+  # geom_smooth() +
   geom_point() +
   coord_cartesian(ylim=c(0,max(dat$nr))) +
   theme_minimal()+
@@ -31,15 +44,16 @@ p = ggplot(dat, aes(x=sub, y=nr)) +
   ylab("number of clusters")
 plot(p)
 
-ggsave(plot=p, filename=paste(path, "/figures/subsampling.png", sep=""), height=3, width=5)
-
-
-p = ggplot(dat, aes(x=sub, y=m)) +
+p2 = ggplot(dat, aes(x=sub, y=m)) +
   geom_point() +
   coord_cartesian(ylim=c(0,100)) +
   theme_minimal()+
   xlab("subsampling proportion of background sequences") +
   ylab("mean cluster size")
-plot(p)
+plot(p2)
 
-ggsave(plot=p, filename=paste(path, "/figures/subsampling_mean.png", sep=""), height=3, width=5)
+
+require(gridExtra)
+require(ggpubr)
+p_both = ggarrange(p,p2, labels=c("A", "B"), ncol = 1)
+ggsave(plot=p_both, filename=paste(path, "/figures/subsampling.png", sep=""), height=5, width=7)

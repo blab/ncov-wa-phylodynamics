@@ -13,6 +13,8 @@ both_clades_col = "#268457"
 d_clade_col = "#0072B2"
 g_clade_col = "#D55E00"
 
+end_plot = as.Date("2020-07-01")
+
 # regions given by https://www.doh.wa.gov/Portals/1/Documents/1200/phsd-PHEPR.pdf
 region_map = data.frame(county="King", region="King")
 region_map = rbind(region_map, data.frame(county="Snohomish", region="North"))
@@ -234,7 +236,7 @@ for (i in seq(1,length(uni_regions))){
   p <- ggplot(data=cases[which(cases$region==uni_regions[[i]]),])+
     geom_histogram(aes(x=time, group=clade, fill=clade), binwidth=7)+
     scale_fill_manual(values=c("D"=d_clade_col, "G"=g_clade_col, "other"=both_clades_col)) +
-    scale_x_date(limits=c(min(cases$time), max(cases$time)))+
+    scale_x_date(limits=c(min(cases$time), end_plot))+
     geom_line(data=combined.testing[which(combined.testing$region==uni_regions[[i]]),], aes(x=date, y=count/transform), stat="identity", position="stack", color=both_clades_col)+
     xlab("")+
 scale_y_continuous(name="daily positive tests ", sec.axis = sec_axis(~ 1/transform*., name = "weekly nr sequences")) +
@@ -252,7 +254,7 @@ transform=1
 p <- ggplot(data=cases[which(cases$location!="Yakima County"),])+
   geom_histogram(aes(x=time, group=clade, fill=clade), binwidth=7)+
   scale_fill_manual(values=c("D"=d_clade_col, "G"=g_clade_col, "other"=both_clades_col)) +
-  scale_x_date(limits=c(min(cases$time), max(cases$time)))+
+  scale_x_date(limits=c(min(cases$time), end_plot))+
   geom_line(data=combined.testing2[which(combined.testing2$region!="Yakima"),], aes(x=date, y=count/transform), stat="identity", position="stack", color=both_clades_col)+
   xlab("")+
 scale_y_continuous(name="daily positive tests ", sec.axis = sec_axis(~ 1/transform*., name = "weekly nr sequences")) +
@@ -267,7 +269,7 @@ ggsave(p, file=paste(path, "/figures/Wa_wo_yakima.pdf", sep=""), width=4, height
 p <- ggplot(data=cases[which(cases$location=="Yakima County"),])+
   geom_histogram(aes(x=time, group=clade, fill=clade), binwidth=7)+
   scale_fill_manual(values=c("D"=d_clade_col, "G"=g_clade_col, "other"=both_clades_col)) +
-  scale_x_date(limits=c(min(cases$time), max(cases$time)))+
+  scale_x_date(limits=c(min(cases$time), end_plot))+
   geom_line(data=combined.testing2[which(combined.testing2$region=="Yakima"),], aes(x=date, y=count/transform), stat="identity", position="stack", color=both_clades_col)+
   xlab("")+
 scale_y_continuous(name="daily positive tests ", sec.axis = sec_axis(~ 1/transform*., name = "weekly nr sequences")) +
@@ -283,7 +285,7 @@ ggsave(p, file=paste(path, "/figures/yakima.pdf", sep=""), width=4, height=3)
 p <- ggplot(data=cases)+
   geom_histogram(aes(x=time, group=clade, fill=clade), binwidth=7)+
   scale_fill_manual(values=c("D"=d_clade_col, "G"=g_clade_col, "other"=both_clades_col)) +
-  scale_x_date(limits=c(min(cases$time), max(cases$time)))+
+  scale_x_date(limits=c(min(cases$time), end_plot))+
   geom_line(data=combined.testing4, aes(x=date, y=count/transform), stat="identity", position="stack", color=both_clades_col)+
   xlab("")+
 scale_y_continuous(name="daily positive tests ", sec.axis = sec_axis(~ 1/transform*., name = "weekly nr sequences")) +

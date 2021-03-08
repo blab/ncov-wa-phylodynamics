@@ -20,7 +20,8 @@ clusters = read.table(paste(path,'/results/cluster_size.tsv',sep="/"), sep="\t",
 timeframename = c('WA w/o Yakima', '614D', '614G', 'Yakima')
 
 # how many days to ignore before the mrsi
-cutoff.mrsi = c(21,28,21,21)
+# cutoff.mrsi = c(21,28,21,21)
+cutoff.mrsi = c(7,7,7,7)
 
 # dispersion parameter (for offspring distribution)
 k = 0.3
@@ -110,7 +111,7 @@ first.growth = T
 first.intro = T
 for (i in seq(1,length(mrsi$filename))){
   time_diff = mrsi[i,"date"]-end_time
-  time = seq(0,as.numeric(time_diff),2)
+  time = seq(0,as.numeric(time_diff),3.5)
   
   if (!startsWith( as.character(mrsi[i,"filename"]),"multibd")){
     # read in the log file
@@ -166,7 +167,7 @@ for (i in seq(1,length(mrsi$filename))){
       hpdInt.R.5 = HPDinterval(as.mcmc(R), prob=0.5)
       
       # get the percentage of intros
-      name.intro = paste('immigrationRate',floor((j-1)/7)+1,sep="")
+      name.intro = paste('immigrationRate',floor((j-1)/2)+1,sep="")
       values.intro = exp(t[,name.intro])
       
       # get the approximate transmission rate from the growth rate
@@ -241,7 +242,7 @@ for (i in seq(2,length(positive$date)-average_over, 1)){
 first = T
 for (i in seq(1,length(mrsi$filename))){
   time_diff = mrsi[i,"date"]-end_time
-  time = seq(0,as.numeric(time_diff),2)
+  time = seq(0,as.numeric(time_diff),3.5)
   
   if (startsWith( as.character(mrsi[i,"filename"]),"multibd")){
     # read in the log file
@@ -926,8 +927,8 @@ plot(p)
 
 
 ggsave(plot=p + ylab("")+scale_y_continuous(sec.axis = sec_axis(~ ., name="")), file=paste(path, 'figures/bdsky_R0_mobility_withlegend.pdf', sep='/'), height=1.5,width=8)
-ggsave(plot=p +theme(legend.position="right", legend.box = "horizontal"), file=paste(path, 'figures/bdsky_R0_mobility_withlegend2.pdf', sep='/'), height=4,width=6)
-ggsave(plot=p+theme(legend.position="none"), file=paste(path, 'figures/bdsky_R0_mobility.pdf', sep='/'), height=2.5,width=6)
+ggsave(plot=p + theme(legend.position="right", legend.box = "horizontal"), file=paste(path, 'figures/bdsky_R0_mobility_withlegend2.pdf', sep='/'), height=4,width=6)
+ggsave(plot=p + theme(legend.position="none"), file=paste(path, 'figures/bdsky_R0_mobility.pdf', sep='/'), height=2.5,width=6)
 
 p = ggplot(data=growth_tmp[which(growth_tmp$method=="skygrowth" & growth_tmp$timeframe!="Yakima"), ]) + 
 

@@ -37,13 +37,13 @@ lala=false;
 
 while ~feof(f)
     line = fgets(f);    
-    if contains(line, '"key": "recency",')% removes recency
-        %%
-        line = fgets(f);
-        while ~contains(line, '{')
-            line = fgets(f);
-        end
-    elseif contains(line, '"filters": [')
+%     if contains(line, '"key": "recency",')% removes recency
+%         %%
+%         line = fgets(f);
+%         while ~contains(line, '{')
+%             line = fgets(f);
+%         end
+    if contains(line, '"filters": [')
         fprintf(g,'%s',line);fgets(f);fgets(f);fgets(f);fgets(f);fgets(f);fgets(f);fgets(f);fgets(f);
         fprintf(g,'      "region",\n');
         fprintf(g,'      "location",\n');
@@ -51,6 +51,7 @@ while ~feof(f)
         fprintf(g,'      "region",\n');
         fprintf(g,'      "author"\n');
    elseif contains (line, '"key": "country",')% removes country
+
         %%
         line = fgets(f);
         while ~contains(line, '{')

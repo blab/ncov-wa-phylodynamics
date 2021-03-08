@@ -28,6 +28,7 @@ meta.wa = read.csv("../data/combined_meta.tsv", header=T, sep="\t")
 meta = read.csv("../../ncov/data/example_metadata.tsv", header=T, sep="\t")
 clade = read.csv("../../ncov-severity/across-states/strain_to_clade.tsv", header=T, sep="\t")
 cluster = read.csv("../results/cluster_assignment.tsv", header=T, sep="\t")
+clades = read.csv("../data/clades.tsv", header=T, sep="\t")
 
 tr$edge.length = tr$edge.length/clock.rate
 edges <- tr$edge
@@ -36,6 +37,7 @@ tip_labs <- tr$tip.label
 
 use=FALSE
 ind.cluster = c()
+ind = c()
 for (i in seq(1, length(tr$tip.label))){
   ind = which(meta.wa$strain==tr$tip.label[i])
   if (length(ind)==1){
@@ -44,6 +46,7 @@ for (i in seq(1, length(tr$tip.label))){
       cl_size = sum(cluster$cluster==cluster[ind.cluster, "cluster"])
       new.tip_labels <- data.frame(id=tr$tip.label[i], study="this study", region="Washington State", county=meta.wa[ind,"location"], date=as.Date(meta.wa[ind,"date"]), cluster=cluster[ind.cluster, "cluster"], cl_size=cl_size)
     }else{
+      print(tr$tip.label[i])
       new.tip_labels <- data.frame(id=tr$tip.label[i], study="this study", region=meta.wa[ind,"region"], county=meta.wa[ind,"location"], date=as.Date(meta.wa[ind,"date"]), cluster=0,cl_size=0)
     }
   }else{
@@ -52,10 +55,11 @@ for (i in seq(1, length(tr$tip.label))){
   }
   
   ind.clade = which(clade$strain==tr$tip.label[i])
-  if (length(ind.cluster)==1){
-    new.clade_label = data.frame(id=tr$tip.label[i], clade=clade[ind.clade, "clade"])
+  ind.clade2 = which(clades$Strain==tr$tip.label[i])
+  if (length(ind.clade2)==1){
+    new.clade_label = data.frame(id=tr$tip.label[i], clade=clade[ind.clade, "clade"], clad.dum=NA, clade2=clades[ind.clade2, "Clade"])
   }else{
-    new.clade_label = data.frame(id=tr$tip.label[i], clade=clade[ind.clade, "clade"])
+    new.clade_label = data.frame(id=tr$tip.label[i], clade=clade[ind.clade, "clade"], clad.dum=NA, clade2=NA)
   }
   if (i==1){
     tip_labels = new.tip_labels
@@ -80,14 +84,20 @@ labels = c(as.Date("2020-01-01"),
            as.Date("2020-04-01"),
            as.Date("2020-05-01"),
            as.Date("2020-06-01"),
-           as.Date("2020-07-01"))
+           as.Date("2020-07-01"),
+           as.Date("2020-08-01"),
+           as.Date("2020-09-01"),
+           as.Date("2020-10-01"))
 labels_str = c("Jan",
                "Feb",
                "Mar",
                "Apr",
                "May",
                "Jun",
-               "Jul")
+               "Jul",
+               "Aug",
+               "Sep",
+               "Oct")
 
 label_vals = as.numeric(labels-root_height)/366
 
@@ -116,15 +126,48 @@ p <- p + theme_minimal() +
 
 plot(p)
 
+cl = subset(clade_labels, select = c(1) )
+
 p=p +theme(legend.position="none")
-p2 = gheatmap(p, clade_labels,  color=NA, offset = 0, width=0.025, colnames = F ) + scale_fill_manual(values=colors) + theme(legend.position = "none")
+p2 = gheatmap(p, cl,  color=NA, offset = 0, width=0.025, colnames = F ) + scale_fill_manual(values=colors) + theme(legend.position = "none")
 print(p2)
 
 ggsave(plot=p2,"../Figures/Tree.pdf",width=8, height=8)
 
 
+colors = c("Washington State" ="#268457",
+           "Europe"="#14309A",
+           "North America"="#BF0B30",
+           "Asia"="#3CB3DF",
+           "Oceania"="#030303",
+           "South America"="#FBE000",
+           "Africa"="#F8A93D",
+           "grey"="#A5A5A5",
+           "D"=d_clade_col,
+           "G"=g_clade_col,
+           "19A" = "#4377CD",
+           "19B" = "#61AB9D",
+           "20A" = "#94BD61",
+           "20B" = "#CDB642",
+           "20C" = "#E68133")
 
+p <- ggtree(tr) %<+% tip_labels + geom_tippoint(shape=16)+ 
+  scale_color_manual(values=colors) + scale_size_manual(values=c(0.5,1)) +aes(color="grey")
 
+p <- p + theme_minimal() +
+  theme(panel.grid.major.x=element_line(color="grey20", size=0.3),
+        panel.grid.major.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) +
+  scale_x_continuous(breaks=label_vals,labels = labels_str)
+
+plot(p)
+
+p=p +theme(legend.position="none")
+p2 = gheatmap(p, clade_labels,  color=NA, offset = 0, width=0.1, colnames = F ) + scale_fill_manual(values=colors) + theme(legend.position = "none")
+print(p2)
+
+ggsave(plot=p2,"../Figures/Tree_clades.pdf",width=5, height=5)
 
 library(RColorBrewer)
 cluster_cols.names = c()

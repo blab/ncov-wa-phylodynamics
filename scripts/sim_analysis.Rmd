@@ -20,7 +20,7 @@ library(ggtree)
 path = "/Users/nmueller/Documents/github/hCoV-19_WA"
 
 end_time = as.Date('2020-01-25')
-
+origin_time = as.Date("2020-02-06")
 timeframename = c('samples until 2020-03-10', 'samples until 2020-03-24')
 
 # dispersion parameter (for offspring distribution)
@@ -93,7 +93,7 @@ for (rep in seq(0,8)){
   plot(p)
 
   # convert times into dates
-  intro_times$date = as.Date("2020-02-06") + floor(intro_times$t*366)
+  intro_times$date = origin_time + floor(intro_times$t*366)
   uni_dates = unique(intro_times$date)
   for (i in seq(1,length(uni_dates))){
     new.positive = data.frame(date=uni_dates[[i]], count=sum(intro_times$date==uni_dates[[i]]), detection="Positive", timeframe=rep)
@@ -142,6 +142,7 @@ for (rep in seq(0,8)){
   mrsi.t$date = as.Date(mrsi.t$V2)
   max.date = max(mrsi.t[mrsi.t$date<=as.Date("2020-07-01"), "date"])
 
+  # mrsi = rbind(mrsi, data.frame(filename=paste("simmulticoal_skygrid_", rep,sep=""),date=max.date))
   mrsi = rbind(mrsi, data.frame(filename=paste("simmulticoal_skygrowth_", rep,sep=""),date=max.date))
   mrsi = rbind(mrsi, data.frame(filename=paste("simmultibd_skygrid_", rep,sep=""),date=max.date))
 }
@@ -152,7 +153,7 @@ first.growth = T
 first.intro = T
 for (i in seq(1,length(mrsi$filename))){
   time_diff = mrsi[i,"date"]-end_time
-  time = seq(0,as.numeric(time_diff),2)
+  time = seq(0,as.numeric(time_diff),7)
   
   # read in the log file
   t = read.table(paste(path,'/simout/', mrsi[i,'filename'], '.log',sep=""), sep="\t", header=T)
@@ -161,7 +162,7 @@ for (i in seq(1,length(mrsi$filename))){
   ess = effectiveSize(as.mcmc(t$posterior))
   
   
-  if (ess[[1]]>100){
+  if (ess[[1]]>50){
     if (!startsWith( as.character(mrsi[i,"filename"]),"simmultibd")){
       # read in all the Ne's
       for (j in seq(1,length(time))){
@@ -205,7 +206,7 @@ for (i in seq(1,length(mrsi$filename))){
         hpdInt.R.5 = HPDinterval(as.mcmc(R), prob=0.5)
   
         # get the percentage of intros
-        name.intro = paste('immigrationRate',floor((j-1)/7)+1,sep="")
+        name.intro = paste('immigrationRate',floor((j-1)/1)+1,sep="")
         values.intro = exp(t[,name.intro])
         # get the approximate transmission rate from the growth rate
         transmission = values + becoming_uninf
@@ -263,7 +264,7 @@ growth$method <- factor(growth$method, levels =c("correlated Ne's", "correlated 
 first = T
 for (i in seq(1,length(mrsi$filename))){
   time_diff = mrsi[i,"date"]-end_time
-  time = seq(0,as.numeric(time_diff),2)
+  time = seq(0,as.numeric(time_diff),7)
   
   if (startsWith( as.character(mrsi[i,"filename"]),"simmultibd")){
     # read in the log file
@@ -415,7 +416,7 @@ for (rep in seq(0,8)){
     values = intro_vals[which(intro_vals$t>=t.vals[[i]] & intro_vals$t<t.vals[[i+average_over]]), "val"]
     m = mean(values)
     std = sd(values)
-    new.smooth_intro = data.frame(t=t.vals[[i]]+average_over/2 + end_time, y=m, err=std, timeframe=rep)
+    new.smooth_intro = data.frame(t=t.vals[[i]]+average_over/2 + origin_time, y=m, err=std, timeframe=rep)
     if (rep==0 && i==1){
       smooth_intro = new.smooth_intro
     }else{
@@ -426,7 +427,7 @@ for (rep in seq(0,8)){
   
 }
 g.perc_intros = ggplot(growth) +
-  geom_line(data=smooth_intro[which(smooth_intro$timeframe!=2),], aes(x=t,y=y*100, color="simulated daily cases\nfrom introdcutions"))+
+  geom_line(data=smooth_intro, aes(x=t,y=y*100, color="simulated daily cases\nfrom introdcutions"))+
   geom_ribbon(aes(x=time, ymin=intro.l*100, ymax=intro.u*100, fill="inferred"), alpha=0.2)+
   geom_ribbon(aes(x=time, ymin=intro.ll*100, ymax=intro.uu*100, fill="inferred"), alpha=0.8)+
   theme_minimal()+
@@ -437,7 +438,7 @@ g.perc_intros = ggplot(growth) +
   scale_color_manual(name="", values ="black")+
   ylab("Percentage of cases due to introductions") +
   xlab("") +
-  facet_wrap(.~timeframe, ncol=2) +
+  facet_wrap(.~timeframe, ncol=3) +
   theme(
   strip.background = element_blank(),
   strip.text.x = element_blank()
@@ -445,6 +446,6 @@ g.perc_intros = ggplot(growth) +
 
 
 plot(g.perc_intros)
-ggsave(plot=g.perc_intros, file=paste(path, 'figures/sim_intro_percentage.png', sep='/'), height=6,width=7)
+ggsave(plot=g.perc_intros, file=paste(path, 'figures/sim_intro_percentage.png', sep='/'), height=6,width=11)
 
 ```

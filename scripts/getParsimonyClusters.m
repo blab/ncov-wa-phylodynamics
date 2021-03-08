@@ -13,7 +13,7 @@ fclose(f);
 
 % exclude WA1 
 exlude = {'USA/WA1/2020'};
-sample_cutoff = '2020-07-23';
+sample_cutoff = '2020-12-01';
 clade = {'all', 'D', 'G', 'Yakima'};
 
 end_date = '2020-01-31';
@@ -89,7 +89,7 @@ nodenames = get(tree, 'nodenames');
 mat = getmatrix(tree);
 dist = pdist(tree, 'Squareform',true,'Nodes','all');
     
-% initialize the location vector
+%% initialize the location vector
 location = cell(length(nodenames),1);
 visited = false(length(nodenames),1);
 
@@ -110,18 +110,28 @@ while ~isempty(not_visited)
     for j = 1 : length(not_visited)
         
         children = find(mat(not_visited(j),:));
+        distances = dist(not_visited(j), children);
         if ~isempty(location{children(1)}) && ~isempty(location{children(2)})
-            % get the distance of the new sample from a basel sequence
-            int = intersect(location{children(1)}, location{children(2)});
-            if isempty(int)
-                location{not_visited(j)} = [location{children(1)}, location{children(2)}];
+            if sum(distances>0)==2
+                % get the distance of the new sample from a basel sequence
+                int = intersect(location{children(1)}, location{children(2)});
+                if isempty(int)
+                    location{not_visited(j)} = [location{children(1)}, location{children(2)}];
+                else
+                    location{not_visited(j)} = int;
+                end
             else
-                location{not_visited(j)} = int;
+               location{not_visited(j)} = [location{children(1)}, location{children(2)}];
             end
             visited(not_visited(j)) = true; 
         end
     end
 end
+
+
+
+
+
 f = fopen('../results/node_locations.tsv', 'w');
 for i = 1 : length(nodenames)
     if contains(nodenames{i},'NODE')
@@ -134,7 +144,7 @@ for i = 1 : length(nodenames)
 end
 fclose(f);
 
-% downwards calling 
+%% downwards calling 
 visited(length(is_wa_leaf)+1:end) = false;
 visited(end) = true;
 
@@ -142,11 +152,31 @@ not_visited = find(~visited);
 while ~isempty(not_visited)
     not_visited = find(~visited);
     for j = length(not_visited) : -1 : 1
-        parent = find(mat(:,not_visited(j)));            
+        parent = find(mat(:,not_visited(j)));    
+        parent_dist = dist(parent,not_visited(j));
+        
+        uni_loc = unique(location{not_visited(j)});
+
         if sum(ismember(not_visited, parent))==0
-            int = intersect(location{not_visited(j)}, location{parent});
-            if ~isempty(int)
-                location{not_visited(j)} = int;
+            if parent_dist == 0
+                location{not_visited(j)} = unique(location{parent});
+            elseif length(uni_loc) < length(location{not_visited(j)})
+                combined_locs = [location{not_visited(j)} location{parent}];
+                uni_comb = unique(combined_locs);        
+                freqs = zeros(length(uni_comb),1);
+                for k = 1 : length(uni_comb)
+                    freqs(k) = sum(combined_locs==uni_comb{k});
+                end
+                ind_max = find(freqs==max(freqs));
+                location{not_visited(j)} = uni_comb(ind_max);
+            else
+                int = intersect(location{not_visited(j)}, location{parent});
+                if ~isempty(int)
+                    location{not_visited(j)} = int;
+                end
+            end
+            if length(location{not_visited(j)})>1
+                location{not_visited(j)}
             end
             visited(not_visited(j)) = true;
         end
@@ -162,10 +192,14 @@ uncertainCOunt = 0;
 for j = 1 : length(onlyWA)
     if length(location{j})==1 && location{j}=="WA"
         onlyWA(j) = true;
-    elseif location{j}=="WA"
+    elseif length(location{j})==2
+        disp(location{j})
+        onlyWA(j) = true;
         uncertainCOunt = uncertainCOunt+1;
     end
 end
+
+
 
 
 isInWA = find(onlyWA(1:length(is_wa_leaf)));

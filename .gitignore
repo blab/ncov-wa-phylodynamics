@@ -2,3 +2,8 @@
 .DS_Store
 xmls/
 *.pdf
+out/*rep*
+out/*.trees
+*json
+*json.zip
+results/cluster_assignment_*

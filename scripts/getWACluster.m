@@ -21,7 +21,7 @@ max_nr_samples = [1500 500 1000 750];
 
 % exclude WA1 
 exlude = {'USA/WA1/2020'};
-sample_cutoff = '2020-06-31';
+sample_cutoff = '2020-07-01';
 clade = {'all', 'D', 'G', 'Yakima'};
 
 
@@ -101,7 +101,7 @@ for sc = 1 : length(clade)
     if strcmp(clade{sc}, 'Yakima')
         is_wa = find(ismember(location, 'Yakima County'));
     else
-        is_wa = find(ismember(division, 'Washington') & ~ismember(location, 'Yakima County'));
+        is_wa = find(ismember(division, 'Washington') & ~ismember(location, 'Yakima County') & contains(location, 'County'));
     end
     
     % read in the cluster membership
@@ -252,8 +252,8 @@ for sc = 1 : length(clade)
     
     disp(datestr(max(max_sampling_times)))
     
-    rate_shifts = [2/366:2/366:(max(max_sampling_times)-datenum(end_date))/366 0.5];
-    rate_shifts_immi = [14/366:14/366:(max(max_sampling_times)-datenum(end_date))/366 0.5];
+    rate_shifts = [3.5/366:3.5/366:(max(max_sampling_times)-datenum(end_date))/366 0.5 1];
+    rate_shifts_immi = [7/366:7/366:(max(max_sampling_times)-datenum(end_date))/366 0.5 1];
 
 
     %% build the mutlti coal xml

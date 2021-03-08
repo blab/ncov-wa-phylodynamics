@@ -33,8 +33,8 @@ insert_data
         <parameter id="gamma" spec="parameter.RealParameter" name="stateNode">0.05</parameter>
         <parameter id="freqs" spec="parameter.RealParameter" dimension="4" lower="0.0" name="stateNode" upper="1.0">0.25</parameter>
 
-        <parameter id="Ne" name="stateNode" dimension="1" upper="100.0">0</parameter>
-        <parameter id="immigrationRate" name="stateNode" upper="10.0" dimension="0">0.0</parameter>
+        <parameter id="Ne" name="stateNode" dimension="1">0</parameter>
+        <parameter id="immigrationRate" name="stateNode" dimension="0">0.0</parameter>
         <parameter id="sigma.Ne" name="stateNode" dimension="1">2</parameter>
         <parameter id="sigma.immi" name="stateNode" dimension="1">2</parameter>
         insert_rate_shifts
