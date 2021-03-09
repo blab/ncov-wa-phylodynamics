@@ -1,6 +1,8 @@
 # Ignore everything in this directory
 .DS_Store
-xmls/
+xmls/sim*
+xmls/*rep1*
+xmls/*rep2*
 *.pdf
 out/*rep*
 out/*.trees
