@@ -115,16 +115,18 @@ for sc = 1 : length(clade)
     end
     fclose(f);
     
+    
+    
     wa_cl_nr = cl_nr(is_wa);
     cl_id = id(is_wa);
     uni_cl = unique(wa_cl_nr);
-    
+    uni_cl(uni_cl==0) = [];
     wa_clusters = cell(0,0);
     for i = 1 : length(uni_cl)
         ind = find(ismember(wa_cl_nr, uni_cl(i)));
         wa_clusters{i} = cl_id{ind(1)};
         if length(ind)>1
-            for a = 2:length(ind)
+            for a = 2 : length(ind)
                 wa_clusters{i} = [ wa_clusters{i} ',' cl_id{ind(a)}];
             end
         end
@@ -298,7 +300,7 @@ for sc = 1 : length(clade)
                     for a = 1 : length(wa_clusters_curr)
                         seqs = strsplit(wa_clusters_curr{a}, ',');
                         date_vals = 'rem';
-                        for b = 1: length(seqs)
+                        for b = 1 : length(seqs)
                             % find the sequence index
                             ind = find(ismember(seq_id, seqs{b}));
                             ind_date = find(ismember(id, seqs{b}));
@@ -335,11 +337,16 @@ for sc = 1 : length(clade)
                 elseif contains(line, 'insert_init_tree')
                     for a = 1 : length(wa_clusters_curr)
                         seqs = strsplit(wa_clusters_curr{a}, ',');
-                        fprintf(g, '\t\t<init id="RandomTree.t:sequences_meta_%d" spec="beast.evolution.tree.RandomTree" estimate="false" initial="@Tree.t:lc_%d" taxa="@sequences_meta:lc_%d">\n', a,a,a);
-                        fprintf(g, '\t\t\t<populationModel id="ConstantPopulation0.%d" spec="ConstantPopulation">\n', a);
-                        fprintf(g, '\t\t\t\t<parameter id="randomPopSize.t:%d" spec="parameter.RealParameter" name="popSize">0.001</parameter>\n', a);
-                        fprintf(g, '\t\t\t</populationModel>\n');
-                        fprintf(g, '\t\t</init>\n');
+                        
+                        
+                        fprintf(g, '\t\t<init spec="beast.util.ClusterTree" id="RandomTree.t:sequences_meta_%d" initial="@Tree.t:lc_%d" clusterType="upgma" taxa="@sequences_meta:lc_%d"/>\n', a,a,a);
+
+                        
+%                         fprintf(g, '\t\t<init id="RandomTree.t:sequences_meta_%d" spec="beast.evolution.tree.RandomTree" estimate="false" initial="@Tree.t:lc_%d" taxa="@sequences_meta:lc_%d">\n', a,a,a);
+%                         fprintf(g, '\t\t\t<populationModel id="ConstantPopulation0.%d" spec="ConstantPopulation">\n', a);
+%                         fprintf(g, '\t\t\t\t<parameter id="randomPopSize.t:%d" spec="parameter.RealParameter" name="popSize">0.001</parameter>\n', a);
+%                         fprintf(g, '\t\t\t</populationModel>\n');
+%                         fprintf(g, '\t\t</init>\n');
                     end
                 elseif contains(line, 'insert_priors')
 
@@ -418,7 +425,7 @@ for sc = 1 : length(clade)
                     for a = 1 : length(wa_clusters_curr)
                         seqs = strsplit(wa_clusters_curr{a}, ',');
                         if length(seqs)>1
-                            rel_weight=length(seqs)/max_size;
+                            rel_weight=sqrt(length(seqs))/sqrt(max_size);
                             fprintf(g, '\t\t<operator id="CoalescentExponentialTreeScaler.t:lc_%d" spec="ScaleOperator" scaleFactor="0.5" tree="@Tree.t:lc_%d" weight="%f"/>\n',a,a, 3*rel_weight);
                             fprintf(g, '\t\t<operator id="CoalescentExponentialTreeRootScaler.t:lc_%d" spec="ScaleOperator" rootOnly="true" scaleFactor="0.5" tree="@Tree.t:lc_%d" weight="%f"/>\n',a,a, 3*rel_weight);
                             fprintf(g, '\t\t<operator id="CoalescentExponentialUniformOperator.t:lc_%d" spec="Uniform" tree="@Tree.t:lc_%d" weight="%f"/>\n',a,a,30*rel_weight);
@@ -428,10 +435,10 @@ for sc = 1 : length(clade)
                             fprintf(g, '\t\t<operator id="CoalescentExponentialWilsonBalding.t:lc_%d" spec="WilsonBalding" tree="@Tree.t:lc_%d" weight="%f"/>\n',a,a, 3*rel_weight);
                         end
 
-                        fprintf(g,'\t\t<operator id="CoalescentRootLengthTreeScaler.t:lc_%d" spec="ScaleOperator" scaleFactor="0.5" parameter="@rootLength:lc_%d" weight="1.0"/>\n',a,a);
+                        fprintf(g,'\t\t<operator id="CoalescentRootLengthTreeScaler.t:lc_%d" spec="ScaleOperator" scaleFactor="0.5" parameter="@rootLength:lc_%d" weight="0.1"/>\n',a,a);
 
                     end
-                    fprintf(g,'\t\t<operator id="AMVGoperator1" spec="AdaptableVarianceMultivariateNormalOperator" every="100" beta="0.1" scaleFactor="0.1" weight="50.0">\n');
+                    fprintf(g,'\t\t<operator id="AMVGoperator1" spec="AdaptableVarianceMultivariateNormalOperator" every="100" beta="0.1" scaleFactor="0.1" weight="10.0">\n');
                     fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$NoTransform" f="@Ne"/>\n');
                     if sp~=2
                         fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$LogTransform" f="@sigma.Ne"/>\n');
@@ -443,7 +450,7 @@ for sc = 1 : length(clade)
                     end
 
                     fprintf(g,'\t\t</operator>\n');
-                    fprintf(g,'\t\t<operator id="RMW" spec="RealRandomWalkOperator" windowSize="0.5" parameter="@Ne" weight="10.0"/>\n');
+                    fprintf(g,'\t\t<operator id="RMW" spec="RealRandomWalkOperator" windowSize="0.5" parameter="@Ne" weight="5.0"/>\n');
 
                 elseif contains(line, 'insert_logs')
                     fprintf(g,'\t\t\t<log idref="sigma.Ne"/>\n');
@@ -550,11 +557,13 @@ for sc = 1 : length(clade)
                 elseif contains(line, 'insert_init_tree')
                     for a = 1 : length(wa_clusters_curr)
                         seqs = strsplit(wa_clusters_curr{a}, ',');
-                        fprintf(g, '\t\t<init id="RandomTree.t:sequences_meta_%d" spec="beast.evolution.tree.RandomTree" estimate="false" initial="@Tree.t:lc_%d" taxa="@sequences_meta:lc_%d">\n', a,a,a);
-                        fprintf(g, '\t\t\t<populationModel id="ConstantPopulation0.%d" spec="ConstantPopulation">\n', a);
-                        fprintf(g, '\t\t\t\t<parameter id="randomPopSize.t:%d" spec="parameter.RealParameter" name="popSize">0.001</parameter>\n', a);
-                        fprintf(g, '\t\t\t</populationModel>\n');
-                        fprintf(g, '\t\t</init>\n');
+                        fprintf(g, '\t\t<init spec="beast.util.ClusterTree" id="RandomTree.t:sequences_meta_%d" initial="@Tree.t:lc_%d" clusterType="upgma" taxa="@sequences_meta:lc_%d"/>\n', a,a,a);
+
+%                         fprintf(g, '\t\t<init id="RandomTree.t:sequences_meta_%d" spec="beast.evolution.tree.RandomTree" estimate="false" initial="@Tree.t:lc_%d" taxa="@sequences_meta:lc_%d">\n', a,a,a);
+%                         fprintf(g, '\t\t\t<populationModel id="ConstantPopulation0.%d" spec="ConstantPopulation">\n', a);
+%                         fprintf(g, '\t\t\t\t<parameter id="randomPopSize.t:%d" spec="parameter.RealParameter" name="popSize">0.001</parameter>\n', a);
+%                         fprintf(g, '\t\t\t</populationModel>\n');
+%                         fprintf(g, '\t\t</init>\n');
                     end
                 elseif contains(line, 'insert_priors')
 
@@ -644,7 +653,7 @@ for sc = 1 : length(clade)
                     for a = 1 : length(wa_clusters_curr)
                         seqs = strsplit(wa_clusters_curr{a}, ',');
                         if length(seqs)>1
-                            rel_weight=length(seqs)/max_size;
+                            rel_weight=sqrt(length(seqs))/sqrt(max_size);
                             fprintf(g, '\t\t<operator id="CoalescentExponentialTreeScaler.t:lc_%d" spec="ScaleOperator" scaleFactor="0.5" tree="@Tree.t:lc_%d" weight="%f"/>\n',a,a, 3*rel_weight);
                             fprintf(g, '\t\t<operator id="CoalescentExponentialTreeRootScaler.t:lc_%d" spec="ScaleOperator" rootOnly="true" scaleFactor="0.5" tree="@Tree.t:lc_%d" weight="%f"/>\n',a,a, 3*rel_weight);
                             fprintf(g, '\t\t<operator id="CoalescentExponentialUniformOperator.t:lc_%d" spec="Uniform" tree="@Tree.t:lc_%d" weight="%f"/>\n',a,a,30*rel_weight);
@@ -654,10 +663,10 @@ for sc = 1 : length(clade)
                             fprintf(g, '\t\t<operator id="CoalescentExponentialWilsonBalding.t:lc_%d" spec="WilsonBalding" tree="@Tree.t:lc_%d" weight="%f"/>\n',a,a, 3*rel_weight);
                         end
 
-                        fprintf(g,'\t\t<operator id="CoalescentRootLengthTreeScaler.t:lc_%d" spec="ScaleOperator" scaleFactor="0.5" parameter="@rootLength:lc_%d" weight="1.0"/>\n',a,a);
+                        fprintf(g,'\t\t<operator id="CoalescentRootLengthTreeScaler.t:lc_%d" spec="ScaleOperator" scaleFactor="0.5" parameter="@rootLength:lc_%d" weight="0.1"/>\n',a,a);
 
                     end
-                    fprintf(g,'\t\t<operator id="AMVGoperator1" spec="AdaptableVarianceMultivariateNormalOperator" every="100" beta="0.1" scaleFactor="0.1" weight="50.0">\n');
+                    fprintf(g,'\t\t<operator id="AMVGoperator1" spec="AdaptableVarianceMultivariateNormalOperator" every="100" beta="0.1" scaleFactor="0.1" weight="10.0">\n');
                     fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$NoTransform" f="@logReproductiveNumber"/>\n');
                     if sp==1
                         fprintf(g,'\t\t\t<transformations spec="beast.util.Transform$LogTransform" f="@sigma.Ne"/>\n');

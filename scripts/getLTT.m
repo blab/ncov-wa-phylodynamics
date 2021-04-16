@@ -7,7 +7,7 @@ for nr =1:4
 
     max_day = 119;
 
-    skip_nr = 1000;
+    skip_nr = 100;
 
 
     for i = 1 : length(tree_files)

@@ -1,7 +1,7 @@
 clear
 
 intro_perc = [0.1 0.03, 0.01];
-samples = round(logspace(0,log10(1500),10));
+samples = round(logspace(0,log10(1500),50));
 f = fopen('../results/sim_cluster_size.tsv', 'w');
 fprintf(f, 'nr_samples\tintro_prob\trun\tintro_percentage\n');
 

@@ -73,7 +73,7 @@ while ~feof(f)
 end
 fclose(f);
 %%
-for rep = 1 : 1 : length(subset)
+for rep = 80 : 1 : length(subset)
     
 
     % get all leafnames

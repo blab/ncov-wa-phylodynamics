@@ -21,7 +21,7 @@ timeframename = c('WA w/o Yakima', '614D', '614G', 'Yakima')
 
 # how many days to ignore before the mrsi
 # cutoff.mrsi = c(21,28,21,21)
-cutoff.mrsi = c(7,7,7,7)
+cutoff.mrsi = c(21,28,21,21)
 
 # dispersion parameter (for offspring distribution)
 k = 0.3
@@ -61,7 +61,7 @@ vline3 = as.Date('2020-03-23') # stay home stay safe order
 # combine runs
 # logs = list.files(path=paste(path, "out", sep="/"), pattern="*rep0.log", full.names=T)
 # for (i in seq(1,length(logs))){
-#     in_command <- " -b 20 -log"
+#     in_command <- " -b 20 -resample 500000 -log"
 #     for (j in seq(0,2)){
 #       in_command = paste(in_command, " ", gsub("rep0", paste("rep", j,sep=""), logs[i]), sep="")
 #     }
@@ -73,7 +73,7 @@ vline3 = as.Date('2020-03-23') # stay home stay safe order
 # combine runs
 # logs = list.files(path=paste(path, "out", sep="/"), pattern="*rep0.*.trees", full.names=T)
 # for (i in seq(1,length(logs))){
-#     in_command <- " -b 20 -log"
+#     in_command <- " -b 20 -resample 500000 -log"
 #     for (j in seq(0,2)){
 #       in_command = paste(in_command, " ", gsub("rep0", paste("rep", j,sep=""), logs[i]), sep="")
 #     }
@@ -81,7 +81,6 @@ vline3 = as.Date('2020-03-23') # stay home stay safe order
 #     # combine the trees
 #     system(paste("/Applications/BEAST\\ 2.6.0/bin/logcombiner", in_command, "-o", out_command, "", sep=" "))
 # }
-
 
 
 # Reads in the analyses
@@ -106,114 +105,117 @@ for (i in seq(1,length(testing$date))){
   testing[i,"count"] = sum(onset_cases[which(onset_cases$Day==testing[i,"date"]), "Positive"])
 }
 
+
 first = T
 first.growth = T
 first.intro = T
 for (i in seq(1,length(mrsi$filename))){
-  time_diff = mrsi[i,"date"]-end_time
-  time = seq(0,as.numeric(time_diff),3.5)
-  
-  if (!startsWith( as.character(mrsi[i,"filename"]),"multibd")){
-    # read in the log file
-    t = read.table(paste(path,'/out/', mrsi[i,'filename'], '.log',sep=""), sep="\t", header=T)
-    # read in all the Ne's
-    for (j in seq(1,length(time))){
-      method = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[2]]
-      timeframe = timeframename[as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])]
-      name = paste('Ne',j,sep="")
-      hpdInt = HPDinterval(exp(as.mcmc(t[,name])))
-      hpdInt.m = HPDinterval(exp(as.mcmc(t[,name])), prob=0.5)
-      
-      date_val = mrsi[i,"date"]-time[j]
-
-      test.numbers = NA
-      if (length(testing[which(testing$date==date_val), "count"])==1){
-        test.numbers = testing[which(testing$date==date_val), "count"]
-      }
-      
-      
-      new.dat = data.frame(time=date_val, 
-                           Ne.mean=median(exp(t[,name])), Ne.lower=hpdInt[1,'lower'], Ne.upper=hpdInt[1,'upper'], 
-                           Ne.ll=hpdInt.m[1,'lower'], Ne.uu=hpdInt.m[1,'upper'], 
-                           nr_cases =test.numbers,
-                           method = method, timeframe=timeframe)
-      if (first){
-        dat = new.dat
-        first = F
-      }else{
-        dat = rbind(dat, new.dat)
-      }
-    }
+  if(!grepl("multicoal_skygrid",as.character(mrsi[i,"filename"]))){
+    time_diff = mrsi[i,"date"]-end_time
+    time = seq(0,as.numeric(time_diff),3.5)
     
-    # get all the growth rates
-    average_over = 1
-    for (j in seq(1,length(time)-average_over,1)){
-      method = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[2]]
-      timeframe = timeframename[as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])]
-      
-      name1 = paste('Ne',j,sep="")
-      name2 = paste('Ne',j+average_over,sep="")
-      
-      # get the growth rates
-      values = (t[,name1]-t[,name2])/(time[j+average_over]-time[j])*365
-      
-      doubling = log(2)/values
-      R = 1+values/becoming_uninf
-      R[which(R<=0)] = 0
-      hpdInt = HPDinterval(as.mcmc(values))
-      hpdInt.5 = HPDinterval(as.mcmc(values), prob=0.5)
-      hpdInt.doubling = HPDinterval(as.mcmc(doubling))
-      hpdInt.R = HPDinterval(as.mcmc(R))
-      hpdInt.R.5 = HPDinterval(as.mcmc(R), prob=0.5)
-      
-      # get the percentage of intros
-      name.intro = paste('immigrationRate',floor((j-1)/2)+1,sep="")
-      values.intro = exp(t[,name.intro])
-      
-      # get the approximate transmission rate from the growth rate
-      transmission = values + becoming_uninf
-      # assume that the minimal R0 is .5
-      transmission[which(transmission<becoming_uninf/2)] = becoming_uninf/2
-      # get the ratio of intros
-      ratio.intro = exp(t[,name.intro])/(exp(t[,name.intro]) + transmission)
-      
-      hpd.intro = HPDinterval(as.mcmc(ratio.intro))
-      hpd.intro.5 = HPDinterval(as.mcmc(ratio.intro), prob=0.5)
-      
-      hpd.force = HPDinterval(as.mcmc(values.intro/exp(t[,name1])))
-      hpd.force.5 = HPDinterval(as.mcmc(values.intro/exp(t[,name1])), prob=0.5)
-
-      
-
-      new.dat = data.frame(time=mrsi[i,"date"]-time[j], 
-                           growth.mean=median(values), growth.lower=hpdInt[1,'lower'], growth.upper=hpdInt[1,'upper'], 
-                           growth.ll=hpdInt.5[1,'lower'], growth.uu=hpdInt.5[1,'upper'], 
-                           doubling.mean=median(doubling), doubling.lower=hpdInt.doubling[1,'lower'], doubling.upper=hpdInt.doubling[1,'upper'], 
-                           R.lower=hpdInt.R[1,'lower'], R.upper=hpdInt.R[1,'upper'], 
-                           R.ll=hpdInt.R.5[1,'lower'], R.uu=hpdInt.R.5[1,'upper'], 
-                           intro.l=hpd.intro[1,'lower'], intro.u=hpd.intro[1,'upper'],
-                           intro.ll=hpd.intro.5[1,'lower'], intro.uu=hpd.intro.5[1,'upper'],
-                           force.l=hpd.force[1,'lower'], force.u=hpd.force[1,'upper'],
-                           force.ll=hpd.force.5[1,'lower'], force.uu=hpd.force.5[1,'upper'],
-                           method = method, timeframe=timeframe)
-      
-      new.dat = rbind(new.dat, data.frame(time=mrsi[i,"date"]-time[j+1] +0.01, 
-                           growth.mean=median(values), growth.lower=hpdInt[1,'lower'], growth.upper=hpdInt[1,'upper'], 
-                           growth.ll=hpdInt.5[1,'lower'], growth.uu=hpdInt.5[1,'upper'], 
-                           doubling.mean=median(doubling), doubling.lower=hpdInt.doubling[1,'lower'], doubling.upper=hpdInt.doubling[1,'upper'], 
-                           R.lower=hpdInt.R[1,'lower'], R.upper=hpdInt.R[1,'upper'], 
-                           R.ll=hpdInt.R.5[1,'lower'], R.uu=hpdInt.R.5[1,'upper'], 
-                           intro.l=hpd.intro[1,'lower'], intro.u=hpd.intro[1,'upper'],
-                           intro.ll=hpd.intro.5[1,'lower'], intro.uu=hpd.intro.5[1,'upper'],
-                           force.l=hpd.force[1,'lower'], force.u=hpd.force[1,'upper'],
-                           force.ll=hpd.force.5[1,'lower'], force.uu=hpd.force.5[1,'upper'],
-                           method = method, timeframe=timeframe))
+    if (!startsWith( as.character(mrsi[i,"filename"]),"multibd")){
+      # read in the log file
+      t = read.table(paste(path,'/out/', mrsi[i,'filename'], '.log',sep=""), sep="\t", header=T)
+      # read in all the Ne's
+      for (j in seq(1,length(time))){
+        method = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[2]]
+        timeframe = timeframename[as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])]
+        name = paste('Ne',j,sep="")
+        hpdInt = HPDinterval(exp(as.mcmc(t[,name])))
+        hpdInt.m = HPDinterval(exp(as.mcmc(t[,name])), prob=0.5)
+        
+        date_val = mrsi[i,"date"]-time[j]
   
-      if (first.growth){
-        growth = new.dat
-        first.growth = F
-      }else{
-        growth = rbind(growth, new.dat)
+        test.numbers = NA
+        if (length(testing[which(testing$date==date_val), "count"])==1){
+          test.numbers = testing[which(testing$date==date_val), "count"]
+        }
+        
+        
+        new.dat = data.frame(time=date_val, 
+                             Ne.mean=median(exp(t[,name])), Ne.lower=hpdInt[1,'lower'], Ne.upper=hpdInt[1,'upper'], 
+                             Ne.ll=hpdInt.m[1,'lower'], Ne.uu=hpdInt.m[1,'upper'], 
+                             nr_cases =test.numbers,
+                             method = method, timeframe=timeframe)
+        if (first){
+          dat = new.dat
+          first = F
+        }else{
+          dat = rbind(dat, new.dat)
+        }
+      }
+      
+      # get all the growth rates
+      average_over = 1
+      for (j in seq(1,length(time)-average_over,1)){
+        method = strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[2]]
+        timeframe = timeframename[as.numeric(strsplit(as.character(mrsi[i,'filename']), split="_")[[1]][[3]])]
+        
+        name1 = paste('Ne',j,sep="")
+        name2 = paste('Ne',j+average_over,sep="")
+        
+        # get the growth rates
+        values = (t[,name1]-t[,name2])/(time[j+average_over]-time[j])*365
+        
+        doubling = log(2)/values
+        R = 1+values/becoming_uninf
+        R[which(R<=0)] = 0
+        hpdInt = HPDinterval(as.mcmc(values))
+        hpdInt.5 = HPDinterval(as.mcmc(values), prob=0.5)
+        hpdInt.doubling = HPDinterval(as.mcmc(doubling))
+        hpdInt.R = HPDinterval(as.mcmc(R))
+        hpdInt.R.5 = HPDinterval(as.mcmc(R), prob=0.5)
+        
+        # get the percentage of intros
+        name.intro = paste('immigrationRate',floor((j-1)/2)+1,sep="")
+        values.intro = exp(t[,name.intro])
+        
+        # get the approximate transmission rate from the growth rate
+        transmission = values + becoming_uninf
+        # assume that the minimal R0 is .5
+        transmission[which(transmission<becoming_uninf/2)] = becoming_uninf/2
+        # get the ratio of intros
+        ratio.intro = exp(t[,name.intro])/(exp(t[,name.intro]) + transmission)
+        
+        hpd.intro = HPDinterval(as.mcmc(ratio.intro))
+        hpd.intro.5 = HPDinterval(as.mcmc(ratio.intro), prob=0.5)
+        
+        hpd.force = HPDinterval(as.mcmc(values.intro/exp(t[,name1])))
+        hpd.force.5 = HPDinterval(as.mcmc(values.intro/exp(t[,name1])), prob=0.5)
+  
+        
+  
+        new.dat = data.frame(time=mrsi[i,"date"]-time[j], 
+                             growth.mean=median(values), growth.lower=hpdInt[1,'lower'], growth.upper=hpdInt[1,'upper'], 
+                             growth.ll=hpdInt.5[1,'lower'], growth.uu=hpdInt.5[1,'upper'], 
+                             doubling.mean=median(doubling), doubling.lower=hpdInt.doubling[1,'lower'], doubling.upper=hpdInt.doubling[1,'upper'], 
+                             R.lower=hpdInt.R[1,'lower'], R.upper=hpdInt.R[1,'upper'], 
+                             R.ll=hpdInt.R.5[1,'lower'], R.uu=hpdInt.R.5[1,'upper'], 
+                             intro.l=hpd.intro[1,'lower'], intro.u=hpd.intro[1,'upper'],
+                             intro.ll=hpd.intro.5[1,'lower'], intro.uu=hpd.intro.5[1,'upper'],
+                             force.l=hpd.force[1,'lower'], force.u=hpd.force[1,'upper'],
+                             force.ll=hpd.force.5[1,'lower'], force.uu=hpd.force.5[1,'upper'],
+                             method = method, timeframe=timeframe)
+        
+        new.dat = rbind(new.dat, data.frame(time=mrsi[i,"date"]-time[j+1] +0.01, 
+                             growth.mean=median(values), growth.lower=hpdInt[1,'lower'], growth.upper=hpdInt[1,'upper'], 
+                             growth.ll=hpdInt.5[1,'lower'], growth.uu=hpdInt.5[1,'upper'], 
+                             doubling.mean=median(doubling), doubling.lower=hpdInt.doubling[1,'lower'], doubling.upper=hpdInt.doubling[1,'upper'], 
+                             R.lower=hpdInt.R[1,'lower'], R.upper=hpdInt.R[1,'upper'], 
+                             R.ll=hpdInt.R.5[1,'lower'], R.uu=hpdInt.R.5[1,'upper'], 
+                             intro.l=hpd.intro[1,'lower'], intro.u=hpd.intro[1,'upper'],
+                             intro.ll=hpd.intro.5[1,'lower'], intro.uu=hpd.intro.5[1,'upper'],
+                             force.l=hpd.force[1,'lower'], force.u=hpd.force[1,'upper'],
+                             force.ll=hpd.force.5[1,'lower'], force.uu=hpd.force.5[1,'upper'],
+                             method = method, timeframe=timeframe))
+    
+        if (first.growth){
+          growth = new.dat
+          first.growth = F
+        }else{
+          growth = rbind(growth, new.dat)
+        }
       }
     }
   }
@@ -955,7 +957,7 @@ plot(p)
 ggsave(plot=p + theme(legend.position = "none"), file=paste(path, 'figures/coal_R0_mobility.pdf', sep='/'), height=2.5,width=6)
 
 
-p = ggplot(data=dat.bdsky[which(dat.bdsky$timeframe=="Yakima"),]) + 
+p = ggplot(data=dat.bdsky_tmp[which(dat.bdsky_tmp$timeframe=="Yakima"),]) + 
   geom_ribbon(aes(x=time, ymin=Ne.lower, ymax=Ne.upper, fill=timeframe), alpha=0.2) +
   geom_ribbon(aes(x=time, ymin=Ne.ll, ymax=Ne.uu, fill=timeframe), alpha=0.8) +
   scale_x_date(limits=c(as.Date('2020-01-25'), max(mrsi$date)))  +
@@ -977,7 +979,7 @@ ggsave(plot=p + theme(legend.position = "none"), file=paste(path, 'figures/bdsky
 ggsave(plot=p, file=paste(path, 'figures/bdsky_R0_mobility_yakima_legend.pdf', sep='/'), height=2.5,width=4)
 
 
-p = ggplot(data=growth[which(growth$method=="skygrowth" & growth$timeframe=="Yakima"), ]) + 
+p = ggplot(data=growth_tmp[which(growth_tmp$method=="skygrowth" & growth_tmp$timeframe=="Yakima"), ]) + 
 
   geom_ribbon(aes(x=time, ymin=R.lower, ymax=R.upper, fill=timeframe), alpha=0.2) +
   geom_ribbon(aes(x=time, ymin=R.ll, ymax=R.uu, fill=timeframe), alpha=0.8) +
