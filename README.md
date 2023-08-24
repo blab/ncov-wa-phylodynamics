@@ -24,11 +24,11 @@ Affiliations:
 
 **Abstract:** The rapid spread of SARS-CoV-2 has gravely impacted societies around the world. Outbreaks in different parts of the globe have been shaped by repeated introductions of new viral lineages and subsequent local transmission of those lineages. Here, we sequenced 3940 SARS-CoV-2 viral genomes from Washington State to characterize how the spread of SARS-CoV-2 in Washington State (USA) in early 2020 was shaped by differences in timing of mitigation strategies across counties, as well as by repeated introductions of viral lineages into the state. Additionally, we show that the increase in frequency of a potentially more transmissible viral variant (614G) over time can potentially be explained by regional mobility differences and multiple introductions of 614G, but not the other variant (614D) into the state. At an individual level, we observed evidence of higher viral loads in patients infected with the 614G variant. However, using clinical records data, we did not find any evidence that the 614G variant impacts clinical severity or patient outcomes. Overall, this suggests that with regards to D614G, the behavior of individuals has been more important in shaping the course of the pandemic in Washington State than this variant of the virus.
 
-**[Software](/Software)** contains the NAB.jar file, which is a compiled BEAST2 jar file that includes the multitree coalescent. It can be run just like any other BEAST2 jar file from the command line.<br/>
+**[Software](Software/)** contains the NAB.jar file, which is a compiled BEAST2 jar file that includes the multitree coalescent. It can be run just like any other BEAST2 jar file from the command line.<br/>
 
-**[scripts](/scripts)** contains all the matlab and R scripts that are needed to build xml files, to get clusters and to plot the figures in the manuscript<br/>
+**[scripts](scripts/)** contains all the matlab and R scripts that are needed to build xml files, to get clusters and to plot the figures in the manuscript<br/>
 
-**[xmls](/xmls)** contains xml files to run the multitree coalescent analyses. The xml files are given for rep0 whereas the runs for the manuscript were in triplets (with rep1 and rep2 files, while not given, being exactly the same as the rep0 files).<br/>
+**[xmls](xmls/)** contains xml files to run the multitree coalescent analyses. The xml files are given for rep0 whereas the runs for the manuscript were in triplets (with rep1 and rep2 files, while not given, being exactly the same as the rep0 files).<br/>
 
 ### Citation
 [Müller et al. 2021. Viral genomes reveal patterns of the SARS-CoV-2 outbreak in Washington State. Sci Transl Med 13: eabf0202.](https://doi.org/10.1126/scitranslmed.abf0202)
